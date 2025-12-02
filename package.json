@@ -1,5 +1,5 @@
 {
-  "name": "titan-aquatics-v2.0.1",
+  "name": "titanaquaticsv3.2",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -13,7 +13,9 @@
     "react-dom": "^19.2.0",
     "lucide-react": "^0.553.0",
     "@google/genai": "^1.29.0",
-    "framer-motion": "^12.23.24"
+    "framer-motion": "^12.23.24",
+    "@supabase/supabase-js": "^2.49.1",
+    "jspdf": "^2.5.1"
   },
   "devDependencies": {
     "@types/node": "^22.14.0",

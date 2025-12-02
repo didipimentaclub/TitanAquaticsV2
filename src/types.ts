@@ -4,27 +4,10 @@
  * SPDX-License-Identifier: Apache-2.0
 */
 
-
-export interface Artist {
-  id: string;
-  name: string;
-  genre: string;
-  image: string;
-  day: string;
-  description: string;
-}
-
 export interface ChatMessage {
   role: 'user' | 'model';
   text: string;
   isError?: boolean;
-}
-
-export enum Section {
-  HERO = 'hero',
-  LINEUP = 'lineup',
-  EXPERIENCE = 'experience',
-  TICKETS = 'tickets',
 }
 
 export interface Aquarium {
@@ -32,7 +15,7 @@ export interface Aquarium {
   user_id: string;
   name: string;
   volume: number;
-  sump_volume?: number; // Novo campo
+  sump_volume?: number;
   type: string;
   setup_date: string;
   fauna: string;
@@ -50,4 +33,12 @@ export interface AquariumEvent {
   image?: string;
   link?: string;
   video_url?: string;
+}
+
+export interface UserProfile {
+  id: string;
+  email?: string;
+  full_name?: string;
+  subscription_tier?: 'hobby' | 'pro' | 'master';
+  created_at: string;
 }
