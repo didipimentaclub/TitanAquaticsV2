@@ -23,8 +23,8 @@ export const FerramentasSection: React.FC = () => {
   const [activeTool, setActiveTool] = useState<ToolId | null>(null);
 
   return (
-    <div className="max-w-6xl mx-auto p-4 md:p-6">
-      <h1 className="text-3xl font-heading font-bold text-white mb-2">Ferramentas</h1>
+    <div className="max-w-6xl mx-auto p-6 md:p-8">
+      <h2 className="text-3xl font-heading font-bold text-white mb-2">Ferramentas</h2>
       <p className="text-slate-400 mb-8">Laboratório de Ferramentas - Utilitários essenciais para manutenção e planejamento.</p>
 
       {!activeTool ? (
@@ -109,17 +109,17 @@ const VolumeCalculator: React.FC = () => {
       <div className="space-y-3">
         {tipo === 'retangular' ? (
           <>
-            <input type="number" placeholder="Comprimento (cm)" value={dims.comprimento} onChange={e => setDims({...dims, comprimento: e.target.value})} className="w-full bg-black/30 border border-white/10 rounded-lg px-4 py-3 text-white" />
-            <input type="number" placeholder="Largura (cm)" value={dims.largura} onChange={e => setDims({...dims, largura: e.target.value})} className="w-full bg-black/30 border border-white/10 rounded-lg px-4 py-3 text-white" />
-            <input type="number" placeholder="Altura (cm)" value={dims.altura} onChange={e => setDims({...dims, altura: e.target.value})} className="w-full bg-black/30 border border-white/10 rounded-lg px-4 py-3 text-white" />
+            <input type="number" placeholder="Comprimento (cm)" value={dims.comprimento} onChange={e => setDims({...dims, comprimento: e.target.value})} className="w-full bg-black/30 border border-white/10 rounded-lg px-4 py-3 text-white focus:border-[#4fb7b3] outline-none" />
+            <input type="number" placeholder="Largura (cm)" value={dims.largura} onChange={e => setDims({...dims, largura: e.target.value})} className="w-full bg-black/30 border border-white/10 rounded-lg px-4 py-3 text-white focus:border-[#4fb7b3] outline-none" />
+            <input type="number" placeholder="Altura (cm)" value={dims.altura} onChange={e => setDims({...dims, altura: e.target.value})} className="w-full bg-black/30 border border-white/10 rounded-lg px-4 py-3 text-white focus:border-[#4fb7b3] outline-none" />
           </>
         ) : (
           <>
-            <input type="number" placeholder="Raio (cm)" value={dims.raio} onChange={e => setDims({...dims, raio: e.target.value})} className="w-full bg-black/30 border border-white/10 rounded-lg px-4 py-3 text-white" />
-            <input type="number" placeholder="Altura (cm)" value={dims.altura} onChange={e => setDims({...dims, altura: e.target.value})} className="w-full bg-black/30 border border-white/10 rounded-lg px-4 py-3 text-white" />
+            <input type="number" placeholder="Raio (cm)" value={dims.raio} onChange={e => setDims({...dims, raio: e.target.value})} className="w-full bg-black/30 border border-white/10 rounded-lg px-4 py-3 text-white focus:border-[#4fb7b3] outline-none" />
+            <input type="number" placeholder="Altura (cm)" value={dims.altura} onChange={e => setDims({...dims, altura: e.target.value})} className="w-full bg-black/30 border border-white/10 rounded-lg px-4 py-3 text-white focus:border-[#4fb7b3] outline-none" />
           </>
         )}
-        <input type="number" placeholder="Volume do Sump (L) - opcional" value={sump} onChange={e => setSump(e.target.value)} className="w-full bg-black/30 border border-white/10 rounded-lg px-4 py-3 text-white" />
+        <input type="number" placeholder="Volume do Sump (L) - opcional" value={sump} onChange={e => setSump(e.target.value)} className="w-full bg-black/30 border border-white/10 rounded-lg px-4 py-3 text-white focus:border-[#4fb7b3] outline-none" />
       </div>
 
       <div className="mt-6 p-4 bg-[#4fb7b3]/20 rounded-lg">
@@ -144,7 +144,7 @@ const SubstratoCalculator: React.FC = () => {
   };
 
   return (
-    <div className="bg-[#1a1b3b]/60 border border-white/10 rounded-xl p-6">
+    <div className="bg-[#1a1b3b]/60 border border-white/10 rounded-xl p-6 max-w-md">
       <h2 className="text-xl font-bold text-white mb-4">Calculadora de Substrato</h2>
       
       <div className="flex gap-2 mb-4">
@@ -156,9 +156,9 @@ const SubstratoCalculator: React.FC = () => {
       </div>
 
       <div className="space-y-3">
-        <input type="number" placeholder="Comprimento (cm)" value={dims.comprimento} onChange={e => setDims({...dims, comprimento: e.target.value})} className="w-full bg-black/30 border border-white/10 rounded-lg px-4 py-3 text-white" />
-        <input type="number" placeholder="Largura (cm)" value={dims.largura} onChange={e => setDims({...dims, largura: e.target.value})} className="w-full bg-black/30 border border-white/10 rounded-lg px-4 py-3 text-white" />
-        <input type="number" placeholder="Altura desejada (cm)" value={dims.altura} onChange={e => setDims({...dims, altura: e.target.value})} className="w-full bg-black/30 border border-white/10 rounded-lg px-4 py-3 text-white" />
+        <input type="number" placeholder="Comprimento (cm)" value={dims.comprimento} onChange={e => setDims({...dims, comprimento: e.target.value})} className="w-full bg-black/30 border border-white/10 rounded-lg px-4 py-3 text-white focus:border-[#4fb7b3] outline-none" />
+        <input type="number" placeholder="Largura (cm)" value={dims.largura} onChange={e => setDims({...dims, largura: e.target.value})} className="w-full bg-black/30 border border-white/10 rounded-lg px-4 py-3 text-white focus:border-[#4fb7b3] outline-none" />
+        <input type="number" placeholder="Altura desejada (cm)" value={dims.altura} onChange={e => setDims({...dims, altura: e.target.value})} className="w-full bg-black/30 border border-white/10 rounded-lg px-4 py-3 text-white focus:border-[#4fb7b3] outline-none" />
       </div>
 
       <div className="mt-6 p-4 bg-[#4fb7b3]/20 rounded-lg">
@@ -185,17 +185,17 @@ const CO2Table: React.FC = () => {
     : { text: 'Alto (perigo para peixes)', color: 'text-rose-400' };
 
   return (
-    <div className="bg-[#1a1b3b]/60 border border-white/10 rounded-xl p-6">
+    <div className="bg-[#1a1b3b]/60 border border-white/10 rounded-xl p-6 max-w-md">
       <h2 className="text-xl font-bold text-white mb-4">Tabela de CO2</h2>
       
       <div className="space-y-3">
         <div>
           <label className="text-xs text-[#4fb7b3] uppercase font-bold">pH</label>
-          <input type="number" step="0.1" value={ph} onChange={e => setPh(e.target.value)} className="w-full bg-black/30 border border-white/10 rounded-lg px-4 py-3 text-white" />
+          <input type="number" step="0.1" value={ph} onChange={e => setPh(e.target.value)} className="w-full bg-black/30 border border-white/10 rounded-lg px-4 py-3 text-white focus:border-[#4fb7b3] outline-none" />
         </div>
         <div>
           <label className="text-xs text-[#4fb7b3] uppercase font-bold">KH (dKH)</label>
-          <input type="number" value={kh} onChange={e => setKh(e.target.value)} className="w-full bg-black/30 border border-white/10 rounded-lg px-4 py-3 text-white" />
+          <input type="number" value={kh} onChange={e => setKh(e.target.value)} className="w-full bg-black/30 border border-white/10 rounded-lg px-4 py-3 text-white focus:border-[#4fb7b3] outline-none" />
         </div>
       </div>
 
@@ -227,7 +227,7 @@ const EnergiaCalculator: React.FC = () => {
   const custoTotal = kwhTotal * parseFloat(tarifa);
 
   return (
-    <div className="bg-[#1a1b3b]/60 border border-white/10 rounded-xl p-6">
+    <div className="bg-[#1a1b3b]/60 border border-white/10 rounded-xl p-6 max-w-lg">
       <h2 className="text-xl font-bold text-white mb-4">Custo de Energia</h2>
       
       <div className="space-y-3 mb-4">
@@ -244,7 +244,7 @@ const EnergiaCalculator: React.FC = () => {
 
       <div className="mb-4">
         <label className="text-xs text-[#4fb7b3] uppercase font-bold">Tarifa (R$/kWh)</label>
-        <input type="number" step="0.01" value={tarifa} onChange={e => setTarifa(e.target.value)} className="w-full bg-black/30 border border-white/10 rounded-lg px-4 py-3 text-white" />
+        <input type="number" step="0.01" value={tarifa} onChange={e => setTarifa(e.target.value)} className="w-full bg-black/30 border border-white/10 rounded-lg px-4 py-3 text-white focus:border-[#4fb7b3] outline-none" />
       </div>
 
       <div className="p-4 bg-[#4fb7b3]/20 rounded-lg">
@@ -272,7 +272,7 @@ const Conversor: React.FC = () => {
   const result = convert();
 
   return (
-    <div className="bg-[#1a1b3b]/60 border border-white/10 rounded-xl p-6">
+    <div className="bg-[#1a1b3b]/60 border border-white/10 rounded-xl p-6 max-w-md">
       <h2 className="text-xl font-bold text-white mb-4">Conversor de Medidas</h2>
       
       <div className="flex gap-2 mb-4">
@@ -288,7 +288,7 @@ const Conversor: React.FC = () => {
         value={valor}
         onChange={e => setValor(e.target.value)}
         placeholder={tipo === 'volume' ? 'Litros' : tipo === 'temp' ? '°Celsius' : 'dGH'}
-        className="w-full bg-black/30 border border-white/10 rounded-lg px-4 py-3 text-white mb-4"
+        className="w-full bg-black/30 border border-white/10 rounded-lg px-4 py-3 text-white mb-4 focus:border-[#4fb7b3] outline-none"
       />
 
       <div className="p-4 bg-[#4fb7b3]/20 rounded-lg space-y-2">

@@ -97,8 +97,13 @@ export interface AquariumEvent {
 }
 
 export interface ParameterRange {
-  min: number; max: number; ideal_min: number; ideal_max: number;
-  unit: string; critical_low?: number; critical_high?: number;
+  min: number;
+  max: number;
+  ideal_min: number;
+  ideal_max: number;
+  unit: string;
+  critical_high?: number;
+  critical_low?: number;
 }
 
 export const PARAMETER_RANGES: Record<TankType, Record<string, ParameterRange>> = {

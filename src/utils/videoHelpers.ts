@@ -20,6 +20,8 @@ export function parseVideoUrl(url?: string): VideoInfo {
     /(?:youtube\.com\/shorts\/)([a-zA-Z0-9_-]{11})/,
     /(?:youtu\.be\/)([a-zA-Z0-9_-]{11})/,
     /(?:youtube\.com\/embed\/)([a-zA-Z0-9_-]{11})/,
+    /(?:youtube\.com\/v\/)([a-zA-Z0-9_-]{11})/,
+    /(?:youtube-nocookie\.com\/embed\/)([a-zA-Z0-9_-]{11})/,
   ];
 
   for (const pattern of youtubePatterns) {
@@ -34,9 +36,29 @@ export function parseVideoUrl(url?: string): VideoInfo {
     }
   }
 
+  const vimeoMatch = trimmedUrl.match(/vimeo\.com\/(\d+)/) || trimmedUrl.match(/player\.vimeo\.com\/video\/(\d+)/);
+  if (vimeoMatch?.[1]) {
+    return { type: 'vimeo', videoId: vimeoMatch[1], embedUrl: `https://player.vimeo.com/video/${vimeoMatch[1]}`, thumbnailUrl: null };
+  }
+
+  if (trimmedUrl.includes('youtube.com/embed/') || trimmedUrl.includes('player.vimeo.com/video/')) {
+    return { type: trimmedUrl.includes('youtube') ? 'youtube' : 'vimeo', videoId: null, embedUrl: trimmedUrl, thumbnailUrl: null };
+  }
+
   return { type: 'unknown', videoId: null, embedUrl: null, thumbnailUrl: null };
 }
 
 export function getEmbedUrl(url?: string): string | null {
   return parseVideoUrl(url).embedUrl;
+}
+
+export function isValidVideoUrl(url?: string): boolean {
+  return url ? parseVideoUrl(url).type !== 'unknown' : false;
+}
+
+export function getYoutubeThumbnail(url?: string, quality: 'default' | 'medium' | 'high' | 'maxres' = 'maxres'): string | null {
+  const { type, videoId } = parseVideoUrl(url);
+  if (type !== 'youtube' || !videoId) return null;
+  const q = { default: 'default', medium: 'mqdefault', high: 'hqdefault', maxres: 'maxresdefault' };
+  return `https://img.youtube.com/vi/${videoId}/${q[quality]}.jpg`;
 }

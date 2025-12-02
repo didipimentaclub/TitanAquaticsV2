@@ -84,7 +84,7 @@ export const NewAquariumModal: React.FC<NewAquariumModalProps> = ({
           exit={{ scale: 0.95, opacity: 0 }}
           className="relative bg-[#1a1b3b] border border-white/10 rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto custom-scrollbar"
         >
-          <div className="sticky top-0 bg-[#1a1b3b] p-6 border-b border-white/10 flex justify-between items-center">
+          <div className="sticky top-0 bg-[#1a1b3b] p-6 border-b border-white/10 flex justify-between items-center z-10">
             <div className="flex items-center gap-3">
               <Fish className="text-[#4fb7b3]" size={24} />
               <h2 className="text-xl font-bold text-white">Novo Aquário</h2>

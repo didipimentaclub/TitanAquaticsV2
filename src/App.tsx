@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import LandingPage from './components/LandingPage';
@@ -7,6 +6,9 @@ import Overview from './views/Overview';
 import Aquariums from './views/Aquariums';
 import Events from './views/Events';
 import Account from './views/Account';
+import { FerramentasSection } from './components/Ferramentas';
+import { ModoViagem } from './components/ModoViagem';
+import { AdminPanel } from './components/AdminPanel';
 import TitanCopilot from './components/TitanCopilot';
 import { Menu } from 'lucide-react';
 
@@ -20,11 +22,6 @@ const LoadingScreen = () => (
     </div>
   </div>
 );
-
-// Placeholder Views
-const ToolsView = () => <div className="p-8 text-white max-w-7xl mx-auto"><h2 className="text-2xl font-bold mb-4">Ferramentas</h2><p className="text-slate-400">Módulo em desenvolvimento (Disponível em breve no v2.1).</p></div>;
-const AdminView = () => <div className="p-8 text-white max-w-7xl mx-auto"><h2 className="text-2xl font-bold mb-4">Administração</h2><p className="text-slate-400">Painel administrativo restrito.</p></div>;
-const TravelView = () => <div className="p-8 text-white max-w-7xl mx-auto"><h2 className="text-2xl font-bold mb-4">Modo Viagem</h2><p className="text-slate-400">Gerador de guias PDF em desenvolvimento.</p></div>;
 
 const AppContent: React.FC = () => {
   const { user, loading } = useAuth();
@@ -44,10 +41,10 @@ const AppContent: React.FC = () => {
       case 'overview': return <Overview />;
       case 'aquariums': return <Aquariums />;
       case 'events': return <Events />;
-      case 'tools': return <ToolsView />;
+      case 'tools': return <FerramentasSection />;
       case 'account': return <Account />;
-      case 'admin': return <AdminView />;
-      case 'travel': return <TravelView />;
+      case 'admin': return <AdminPanel userEmail={user.email} />;
+      case 'travel': return <ModoViagem userId={user.id} />;
       default: return <Overview />;
     }
   };

@@ -37,7 +37,7 @@ const Overview: React.FC = () => {
     setLoadingTanks(true);
     const { data } = await supabase
       .from('aquariums')
-      .select('*, volume:volume_liters, sump_volume:sump_volume_liters, type:tank_type')
+      .select('*')
       .eq('user_id', user.id)
       .order('created_at', { ascending: false });
     
@@ -51,7 +51,7 @@ const Overview: React.FC = () => {
   };
 
   const currentAquarium = myAquariums.find(t => t.id === selectedAquariumId) || myAquariums[0];
-  const tankType = currentAquarium?.type || 'Doce';
+  const tankType = currentAquarium?.tank_type || 'Doce';
   const health = calculateHealthScore(latestTest, tankType);
   const tankAge = currentAquarium?.setup_date 
     ? Math.floor((new Date().getTime() - new Date(currentAquarium.setup_date).getTime()) / (1000 * 60 * 60 * 24)) 
@@ -171,7 +171,7 @@ const Overview: React.FC = () => {
                       <h3 className="text-lg font-bold text-white flex items-center gap-2">
                         {currentAquarium.name}
                         <span className="text-[10px] bg-[#4fb7b3]/10 text-[#4fb7b3] px-2 py-0.5 rounded uppercase tracking-wider font-bold border border-[#4fb7b3]/20">
-                          {currentAquarium.type}
+                          {currentAquarium.tank_type}
                         </span>
                       </h3>
                     </div>
@@ -181,7 +181,7 @@ const Overview: React.FC = () => {
                  <div className="grid grid-cols-3 gap-4 mt-4">
                     <div className="bg-black/20 rounded-lg p-3 border border-white/5">
                        <p className="text-[10px] text-slate-500 uppercase font-bold mb-1 flex items-center gap-1"><Box size={10} /> Volume Total</p>
-                       <p className="text-lg font-mono text-white">{(currentAquarium.volume + (currentAquarium.sump_volume || 0))} L</p>
+                       <p className="text-lg font-mono text-white">{(currentAquarium.volume_liters + (currentAquarium.sump_volume_liters || 0))} L</p>
                     </div>
                     <div className="bg-black/20 rounded-lg p-3 border border-white/5">
                        <p className="text-[10px] text-slate-500 uppercase font-bold mb-1 flex items-center gap-1"><Calendar size={10} /> Idade</p>

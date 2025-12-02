@@ -1,17 +1,30 @@
-// @ts-nocheck
 import React, { useEffect, useState } from 'react';
 import { Plus, Droplets, Pencil, Trash2, Fish } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { supabase } from '../lib/supabaseClient';
-import { Aquarium } from '../types';
+import { Aquarium, UserProfile } from '../types';
+import { useAuth } from '../context/AuthContext';
+import { NewAquariumModal } from '../components/NewAquariumModal';
 
 const Aquariums: React.FC = () => {
+  const { user } = useAuth();
   const [tanks, setTanks] = useState<Aquarium[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
 
   useEffect(() => {
-    fetchTanks();
-  }, []);
+    if (user) {
+      fetchTanks();
+      fetchProfile();
+    }
+  }, [user]);
+
+  const fetchProfile = async () => {
+    if (!user) return;
+    const { data } = await supabase.from('profiles').select('*').eq('id', user.id).single();
+    if(data) setUserProfile(data as any);
+  };
 
   const fetchTanks = async () => {
     try {
@@ -30,6 +43,12 @@ const Aquariums: React.FC = () => {
     }
   };
 
+  const handleDelete = async (id: string) => {
+    if(!confirm("Tem certeza que deseja excluir este aquário? Todos os dados serão perdidos.")) return;
+    await supabase.from('aquariums').delete().eq('id', id);
+    fetchTanks();
+  };
+
   return (
     <div className="space-y-6 max-w-7xl mx-auto p-6 md:p-8">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -37,7 +56,10 @@ const Aquariums: React.FC = () => {
           <h2 className="text-3xl font-heading font-bold text-white mb-1">Meus Aquários</h2>
           <p className="text-slate-400 text-sm">Gerencie seus tanques, fauna e equipamentos.</p>
         </div>
-        <button className="bg-[#4fb7b3] text-[#05051a] px-6 py-2.5 rounded-lg text-xs font-bold uppercase tracking-widest hover:bg-white transition-colors shadow-lg shadow-[#4fb7b3]/20 flex items-center gap-2">
+        <button 
+          onClick={() => setIsModalOpen(true)}
+          className="bg-[#4fb7b3] text-[#05051a] px-6 py-2.5 rounded-lg text-xs font-bold uppercase tracking-widest hover:bg-white transition-colors shadow-lg shadow-[#4fb7b3]/20 flex items-center gap-2"
+        >
           <Plus size={16} /> Novo Aquário
         </button>
       </div>
@@ -53,6 +75,12 @@ const Aquariums: React.FC = () => {
            </div>
            <h3 className="text-xl font-bold text-white mb-2">Nenhum aquário encontrado</h3>
            <p className="text-slate-400 text-sm mb-6">Comece cadastrando seu primeiro ecossistema.</p>
+           <button 
+              onClick={() => setIsModalOpen(true)}
+              className="px-6 py-2 border border-white/10 rounded-lg text-slate-300 hover:text-white hover:bg-white/5 transition-colors text-xs font-bold uppercase tracking-widest"
+           >
+             Cadastrar Agora
+           </button>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -71,7 +99,7 @@ const Aquariums: React.FC = () => {
                    <button className="p-2 hover:bg-white/10 rounded-lg text-slate-400 hover:text-white transition-colors">
                      <Pencil size={16} />
                    </button>
-                   <button className="p-2 hover:bg-rose-500/10 rounded-lg text-slate-400 hover:text-rose-500 transition-colors">
+                   <button onClick={() => handleDelete(tank.id)} className="p-2 hover:bg-rose-500/10 rounded-lg text-slate-400 hover:text-rose-500 transition-colors">
                      <Trash2 size={16} />
                    </button>
                 </div>
@@ -80,14 +108,14 @@ const Aquariums: React.FC = () => {
               <div className="mb-4">
                 <h3 className="text-xl font-bold text-white mb-1">{tank.name}</h3>
                 <span className="text-xs font-bold text-[#4fb7b3] uppercase tracking-wider bg-[#4fb7b3]/10 px-2 py-1 rounded">
-                  {tank.type}
+                  {tank.tank_type}
                 </span>
               </div>
 
               <div className="space-y-3 flex-1 text-sm text-slate-400">
                  <div className="flex justify-between py-2 border-b border-white/5">
                    <span>Volume</span>
-                   <span className="text-white font-mono">{tank.volume + (tank.sump_volume || 0)} L</span>
+                   <span className="text-white font-mono">{tank.volume_liters + (tank.sump_volume_liters || 0)} L</span>
                  </div>
                  <div className="flex justify-between py-2 border-b border-white/5">
                    <span>Montagem</span>
@@ -103,6 +131,17 @@ const Aquariums: React.FC = () => {
             </motion.div>
           ))}
         </div>
+      )}
+
+      {user && (
+        <NewAquariumModal 
+            isOpen={isModalOpen}
+            onClose={() => setIsModalOpen(false)}
+            userId={user.id}
+            userTier={userProfile?.subscription_tier || 'hobby'}
+            currentAquariumCount={tanks.length}
+            onSuccess={fetchTanks}
+        />
       )}
     </div>
   );

@@ -1,15 +1,18 @@
 import React, { useState, useEffect } from 'react';
-import { Plane, Calendar, FileText, Plus, Trash2 } from 'lucide-react';
+import { Plane, Calendar, Phone, FileText, Plus, Trash2 } from 'lucide-react';
 import { supabase } from '../lib/supabaseClient';
 import { Aquarium, TravelGuide } from '../types';
+// @ts-ignore
+import { jsPDF } from 'jspdf';
 
 interface ModoViagemProps {
   userId: string;
-  aquariums: Aquarium[];
+  aquariums?: Aquarium[];
 }
 
-export const ModoViagem: React.FC<ModoViagemProps> = ({ userId, aquariums }) => {
+export const ModoViagem: React.FC<ModoViagemProps> = ({ userId, aquariums: propAquariums }) => {
   const [guides, setGuides] = useState<TravelGuide[]>([]);
+  const [aquariums, setAquariums] = useState<Aquarium[]>(propAquariums || []);
   const [isCreating, setIsCreating] = useState(false);
   const [formData, setFormData] = useState({
     title: '',
@@ -25,8 +28,11 @@ export const ModoViagem: React.FC<ModoViagemProps> = ({ userId, aquariums }) => 
   });
 
   useEffect(() => {
-    fetchGuides();
-  }, [userId]);
+    if(userId) {
+        fetchGuides();
+        if (!propAquariums) fetchAquariums();
+    }
+  }, [userId, propAquariums]);
 
   const fetchGuides = async () => {
     const { data } = await supabase
@@ -35,6 +41,11 @@ export const ModoViagem: React.FC<ModoViagemProps> = ({ userId, aquariums }) => 
       .eq('user_id', userId)
       .order('created_at', { ascending: false });
     if (data) setGuides(data);
+  };
+
+  const fetchAquariums = async () => {
+    const { data } = await supabase.from('aquariums').select('*').eq('user_id', userId);
+    if(data) setAquariums(data);
   };
 
   const handleCreate = async (e: React.FormEvent) => {
@@ -59,46 +70,82 @@ export const ModoViagem: React.FC<ModoViagemProps> = ({ userId, aquariums }) => 
 
   const generatePDF = (guide: TravelGuide) => {
     const aquarium = aquariums.find(a => a.id === guide.aquarium_id);
-    const content = `
-GUIA DE CUIDADOS - MODO VIAGEM
-==============================
-${guide.title}
-Período: ${guide.start_date} a ${guide.end_date}
-${aquarium ? `Aquário: ${aquarium.name} (${aquarium.volume_liters}L - ${aquarium.tank_type})` : ''}
-
-ALIMENTAÇÃO
------------
-${guide.feeding_instructions}
-
-${guide.dosing_instructions ? `DOSAGEM\n-------\n${guide.dosing_instructions}\n` : ''}
-${guide.emergency_instructions ? `EMERGÊNCIAS\n-----------\n${guide.emergency_instructions}\n` : ''}
-${guide.general_notes ? `OBSERVAÇÕES\n-----------\n${guide.general_notes}\n` : ''}
-
-CONTATO DE EMERGÊNCIA
----------------------
-${guide.emergency_contact_name}: ${guide.emergency_contact_phone}
-    `;
+    const doc = new jsPDF();
     
-    const blob = new Blob([content], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `guia-viagem-${guide.title.replace(/\s+/g, '-')}.txt`;
-    a.click();
+    doc.setFontSize(22);
+    doc.text("GUIA DE CUIDADOS - MODO VIAGEM", 105, 20, { align: 'center' });
+    
+    doc.setFontSize(16);
+    doc.text(guide.title, 20, 40);
+    
+    doc.setFontSize(12);
+    doc.text(`Período: ${new Date(guide.start_date).toLocaleDateString()} a ${new Date(guide.end_date).toLocaleDateString()}`, 20, 50);
+    if(aquarium) doc.text(`Aquário: ${aquarium.name} (${aquarium.volume_liters}L)`, 20, 58);
+
+    let y = 70;
+    
+    doc.setFontSize(14);
+    doc.setTextColor(0, 100, 0);
+    doc.text("ALIMENTAÇÃO", 20, y);
+    doc.setTextColor(0, 0, 0);
+    doc.setFontSize(12);
+    const feedLines = doc.splitTextToSize(guide.feeding_instructions, 170);
+    doc.text(feedLines, 20, y + 8);
+    y += 15 + (feedLines.length * 5);
+
+    if(guide.dosing_instructions) {
+        doc.setFontSize(14);
+        doc.setTextColor(0, 0, 150);
+        doc.text("DOSAGEM & SUPLEMENTOS", 20, y);
+        doc.setTextColor(0, 0, 0);
+        doc.setFontSize(12);
+        const doseLines = doc.splitTextToSize(guide.dosing_instructions, 170);
+        doc.text(doseLines, 20, y + 8);
+        y += 15 + (doseLines.length * 5);
+    }
+
+    if(guide.emergency_instructions) {
+        doc.setFontSize(14);
+        doc.setTextColor(150, 0, 0);
+        doc.text("EMERGÊNCIAS", 20, y);
+        doc.setTextColor(0, 0, 0);
+        doc.setFontSize(12);
+        const emergLines = doc.splitTextToSize(guide.emergency_instructions, 170);
+        doc.text(emergLines, 20, y + 8);
+        y += 15 + (emergLines.length * 5);
+    }
+
+    if(guide.general_notes) {
+        doc.setFontSize(14);
+        doc.text("OBSERVAÇÕES GERAIS", 20, y);
+        doc.setFontSize(12);
+        const noteLines = doc.splitTextToSize(guide.general_notes, 170);
+        doc.text(noteLines, 20, y + 8);
+        y += 15 + (noteLines.length * 5);
+    }
+
+    // Footer contact
+    doc.setDrawColor(200);
+    doc.line(20, 260, 190, 260);
+    doc.setFontSize(10);
+    doc.text(`Contato de Emergência: ${guide.emergency_contact_name} - ${guide.emergency_contact_phone}`, 105, 270, { align: 'center' });
+    doc.text("Gerado por Titan Aquatics", 105, 275, { align: 'center' });
+
+    doc.save(`guia-viagem-${guide.title.replace(/\s+/g, '-')}.pdf`);
   };
 
   return (
     <div className="p-6 max-w-6xl mx-auto">
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
         <div>
-          <h1 className="text-3xl font-heading font-bold text-white">Modo Viagem</h1>
+          <h2 className="text-3xl font-heading font-bold text-white">Modo Viagem</h2>
           <p className="text-slate-400">Crie guias de cuidados para quando você estiver ausente.</p>
         </div>
         <button
           onClick={() => setIsCreating(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-[#4fb7b3] text-black rounded-lg font-bold hover:bg-white transition-colors"
+          className="flex items-center gap-2 px-6 py-3 bg-[#4fb7b3] text-black rounded-lg font-bold hover:bg-white transition-colors text-xs uppercase tracking-widest"
         >
-          <Plus size={20} /> Novo Guia
+          <Plus size={16} /> Novo Guia
         </button>
       </div>
 
@@ -215,7 +262,7 @@ ${guide.emergency_contact_name}: ${guide.emergency_contact_phone}
                   onClick={() => generatePDF(guide)}
                   className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-white/5 rounded-lg text-white hover:bg-[#4fb7b3] hover:text-black transition-colors font-bold text-sm uppercase tracking-wider"
                 >
-                  <FileText size={16} /> Baixar
+                  <FileText size={16} /> Baixar PDF
                 </button>
                 <button
                    onClick={() => deleteGuide(guide.id)}
