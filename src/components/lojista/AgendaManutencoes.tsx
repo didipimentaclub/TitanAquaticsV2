@@ -24,7 +24,6 @@ const AgendaManutencoes: React.FC<AgendaManutencoesProps> = ({ userId }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingVisit, setEditingVisit] = useState<MaintenanceVisit | null>(null);
   const [saving, setSaving] = useState(false);
-  const [selectedDate, setSelectedDate] = useState<string | null>(null);
   
   // Aquários do cliente selecionado
   const [clientAquariums, setClientAquariums] = useState<ClientAquarium[]>([]);
