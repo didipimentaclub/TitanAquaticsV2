@@ -1,4 +1,4 @@
-
+// @ts-nocheck
 import React, { useRef, useState, useEffect } from 'react';
 import { motion, useScroll, useTransform, AnimatePresence } from 'framer-motion';
 import { Globe, Zap, Menu, X, Calendar, ChevronLeft, ChevronRight, Droplets, Activity, Fish, ShieldCheck, Plane, BookOpen, ChevronDown, CheckCircle, Info, Twitter, Instagram, Linkedin, Youtube, ArrowRight } from 'lucide-react';

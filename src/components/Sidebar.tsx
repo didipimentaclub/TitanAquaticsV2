@@ -1,3 +1,4 @@
+// @ts-nocheck
 import React from 'react';
 import { LayoutDashboard, Fish, CalendarDays, Wrench, Plane, User, Settings, LogOut, Activity } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';

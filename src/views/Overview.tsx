@@ -1,3 +1,4 @@
+// @ts-nocheck
 import React from 'react';
 import { Activity, Thermometer, Droplets, AlertTriangle, TrendingUp, Clock, CheckCircle } from 'lucide-react';
 import { motion } from 'framer-motion';

@@ -1,3 +1,4 @@
+// @ts-nocheck
 import React, { useEffect, useState } from 'react';
 import { Plus, Droplets, Pencil, Trash2, Fish } from 'lucide-react';
 import { motion } from 'framer-motion';

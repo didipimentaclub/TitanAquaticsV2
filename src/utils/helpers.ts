@@ -7,6 +7,12 @@ export function formatDate(date: string | Date, format: 'short' | 'long' | 'rela
   return d.toLocaleDateString('pt-BR');
 }
 
+export function formatDateTime(date: string | Date): string {
+    const d = typeof date === 'string' ? new Date(date) : date;
+    if (isNaN(d.getTime())) return '-';
+    return d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+}
+
 export type ParameterStatus = 'ideal' | 'acceptable' | 'warning' | 'critical';
 
 export interface ParameterAnalysis {
@@ -18,8 +24,11 @@ export function analyzeParameter(paramName: string, value: number, tankType: Tan
   if (!range) return { status: 'acceptable', message: 'Sem referência', color: 'text-slate-400', bgColor: 'bg-slate-500/20' };
   
   if (range.critical_high && value > range.critical_high) return { status: 'critical', message: 'Crítico!', color: 'text-rose-400', bgColor: 'bg-rose-500/20' };
+  if (range.critical_low && value < range.critical_low) return { status: 'critical', message: 'Crítico!', color: 'text-rose-400', bgColor: 'bg-rose-500/20' };
+
   if (value >= range.ideal_min && value <= range.ideal_max) return { status: 'ideal', message: 'Ideal ✓', color: 'text-emerald-400', bgColor: 'bg-emerald-500/20' };
   if (value >= range.min && value <= range.max) return { status: 'acceptable', message: 'Aceitável', color: 'text-amber-400', bgColor: 'bg-amber-500/20' };
+  
   return { status: 'warning', message: 'Fora do range', color: 'text-orange-400', bgColor: 'bg-orange-500/20' };
 }
 
