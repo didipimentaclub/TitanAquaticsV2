@@ -47,7 +47,8 @@ import { jsPDF } from 'jspdf';
 
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../lib/supabaseClient';
-import { Aquarium, AquariumEvent } from '../types';
+import { Aquarium, AquariumEvent, UserProfile, TankType } from '../types';
+import { getEmbedUrl } from '../utils/videoHelpers';
 
 // --- Interfaces Auxiliares ---
 
@@ -69,14 +70,6 @@ interface TravelPlan {
   emergencyContact: string;
   emergencyPhone: string;
   notes: string;
-}
-
-interface UserProfile {
-  id: string;
-  email?: string;
-  full_name?: string;
-  subscription_tier?: 'hobby' | 'pro' | 'master';
-  created_at: string;
 }
 
 // --- Componente AdminPanel ---
@@ -637,21 +630,6 @@ const Dashboard: React.FC = () => {
     else fetchEvents();
   };
   
-  const getEmbedUrl = (url?: string) => {
-    if (!url) return null;
-    if (url.includes('<iframe')) {
-      const srcMatch = url.match(/src="([^"]+)"/);
-      return srcMatch ? srcMatch[1] : null;
-    }
-    if (url.includes('youtube.com') || url.includes('youtu.be')) {
-       let videoId = '';
-       if (url.includes('v=')) videoId = url.split('v=')[1].split('&')[0];
-       else if (url.includes('youtu.be/')) videoId = url.split('youtu.be/')[1];
-       return `https://www.youtube.com/embed/${videoId}`;
-    }
-    return url;
-  };
-
   const generateTravelGuide = () => {
     const doc = new jsPDF();
     doc.text('Guia do Cuidador - TitanAquatics', 20, 20);
@@ -1065,7 +1043,7 @@ const Dashboard: React.FC = () => {
                 <div className="space-y-2"><label className="text-xs font-bold text-[#4fb7b3] uppercase tracking-widest">Nome</label><input type="text" value={aquariumFormData.name} onChange={e => setAquariumFormData({...aquariumFormData, name: e.target.value})} className="w-full bg-black/30 border border-white/10 rounded-lg px-4 py-3 text-white focus:border-[#4fb7b3] outline-none transition-colors" placeholder="Ex: Principal da Sala" required /></div>
                 
                 <div className="grid grid-cols-2 gap-6">
-                    <div className="space-y-2"><label className="text-xs font-bold text-[#4fb7b3] uppercase tracking-widest">Tipo</label><select value={aquariumFormData.type} onChange={e => setAquariumFormData({...aquariumFormData, type: e.target.value})} className="w-full bg-black/30 border border-white/10 rounded-lg px-4 py-3 text-white focus:border-[#4fb7b3] outline-none transition-colors"><option value="Doce">Água Doce</option><option value="Marinho">Marinho</option><option value="Reef">Reef</option><option value="Jumbo">Jumbo / Predadores</option><option value="Plantado">Plantado</option></select></div>
+                    <div className="space-y-2"><label className="text-xs font-bold text-[#4fb7b3] uppercase tracking-widest">Tipo</label><select value={aquariumFormData.type} onChange={e => setAquariumFormData({...aquariumFormData, type: e.target.value as TankType})} className="w-full bg-black/30 border border-white/10 rounded-lg px-4 py-3 text-white focus:border-[#4fb7b3] outline-none transition-colors"><option value="Doce">Água Doce</option><option value="Marinho">Marinho</option><option value="Reef">Reef</option><option value="Jumbo">Jumbo / Predadores</option><option value="Plantado">Plantado</option></select></div>
                     <div className="space-y-2"><label className="text-xs font-bold text-[#4fb7b3] uppercase tracking-widest">Volume (L)</label><input type="number" value={aquariumFormData.volume || ''} onChange={e => setAquariumFormData({...aquariumFormData, volume: parseFloat(e.target.value) || undefined})} className="w-full bg-black/30 border border-white/10 rounded-lg px-4 py-3 text-white focus:border-[#4fb7b3] outline-none transition-colors" placeholder="0" /></div>
                 </div>
 

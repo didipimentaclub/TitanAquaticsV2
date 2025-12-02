@@ -1,17 +1,35 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { MessageCircle, X, Send, Sparkles, Bot } from 'lucide-react';
+import { X, Send, Sparkles, Bot, Trash2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { sendMessageToGemini } from '../services/geminiService';
 import { ChatMessage } from '../types';
 
+const LOCAL_STORAGE_KEY = 'titan_copilot_chat_history';
+
 const TitanCopilot: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const [messages, setMessages] = useState<ChatMessage[]>([
-    { role: 'model', text: 'Olá! Sou o Titan Copilot 🐠. Posso ajudar com parâmetros da água, compatibilidade de fauna ou diagnósticos. Como posso ser útil?' }
-  ]);
+  
+  // Initialize messages from localStorage or default
+  const [messages, setMessages] = useState<ChatMessage[]>(() => {
+    try {
+      const savedMessages = localStorage.getItem(LOCAL_STORAGE_KEY);
+      if (savedMessages) {
+        return JSON.parse(savedMessages);
+      }
+    } catch (error) {
+      console.error('Error loading chat history:', error);
+    }
+    return [{ role: 'model', text: 'Olá! Sou o Titan Copilot 🐠. Posso ajudar com parâmetros da água, compatibilidade de fauna ou diagnósticos. Como posso ser útil?' }];
+  });
+
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const chatContainerRef = useRef<HTMLDivElement>(null);
+
+  // Save to localStorage whenever messages change
+  useEffect(() => {
+    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(messages));
+  }, [messages]);
 
   const scrollToBottom = () => {
     if (chatContainerRef.current) {
@@ -47,6 +65,14 @@ const TitanCopilot: React.FC = () => {
     }
   };
 
+  const handleClearHistory = () => {
+    if (window.confirm('Deseja limpar o histórico da conversa?')) {
+      const defaultMessage: ChatMessage = { role: 'model', text: 'Histórico limpo! Como posso ajudar agora?' };
+      setMessages([defaultMessage]);
+      localStorage.removeItem(LOCAL_STORAGE_KEY);
+    }
+  };
+
   return (
     <div className="fixed bottom-6 right-6 z-[60] flex flex-col items-end pointer-events-auto font-sans">
       <AnimatePresence>
@@ -71,12 +97,22 @@ const TitanCopilot: React.FC = () => {
                   </div>
                 </div>
               </div>
-              <button 
-                onClick={() => setIsOpen(false)} 
-                className="text-slate-400 hover:text-white transition-colors p-1 hover:bg-white/5 rounded-lg"
-              >
-                <X className="w-5 h-5" />
-              </button>
+              <div className="flex items-center gap-1">
+                <button 
+                  onClick={handleClearHistory}
+                  title="Limpar Histórico"
+                  className="text-slate-400 hover:text-rose-400 transition-colors p-1 hover:bg-white/5 rounded-lg"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+                <div className="w-px h-4 bg-white/10 mx-1" />
+                <button 
+                  onClick={() => setIsOpen(false)} 
+                  className="text-slate-400 hover:text-white transition-colors p-1 hover:bg-white/5 rounded-lg"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
             </div>
 
             {/* Messages */}
