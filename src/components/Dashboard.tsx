@@ -168,7 +168,7 @@ const Dashboard: React.FC = () => {
 
   // Permissões Específicas
   const isLojistaUser = userTier === 'lojista' || isMaster || isAdmin;
-  const canAccessTravel = SUBSCRIPTION_LIMITS[userTier]?.travelMode || isMaster || isAdmin;
+  const canAccessTravel = (userTier !== 'hobby') || isMaster || isAdmin;
 
   return (
     <div className="min-h-screen bg-[#05051a] text-white font-sans selection:bg-[#4fb7b3] selection:text-black overflow-hidden flex">
