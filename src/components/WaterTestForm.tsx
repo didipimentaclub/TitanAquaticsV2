@@ -1,8 +1,8 @@
-// @ts-nocheck
+
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Save, Beaker } from 'lucide-react';
-import { Aquarium, TankType } from '../types';
+import { Aquarium } from '../types';
 
 interface WaterTestFormProps {
   isOpen: boolean;
@@ -28,21 +28,47 @@ const WaterTestForm: React.FC<WaterTestFormProps> = ({ isOpen, onClose, onSubmit
     measured_at: new Date().toISOString().slice(0, 16)
   });
 
+  // Atualiza aquarium_id se aquariums mudar
+  React.useEffect(() => {
+    if (aquariums.length > 0 && !formData.aquarium_id) {
+        setFormData(prev => ({ ...prev, aquarium_id: aquariums[0].id }));
+    }
+  }, [aquariums]);
+
   const selectedTank = aquariums.find(t => t.id === formData.aquarium_id);
-  const isMarine = selectedTank?.type === 'Marinho' || selectedTank?.type === 'Reef';
+  const isMarine = selectedTank?.tank_type === 'Marinho' || selectedTank?.tank_type === 'Reef';
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     
-    // Clean empty strings to null/undefined
-    const cleanData = Object.fromEntries(
-        Object.entries(formData).map(([k, v]) => [k, v === '' ? null : v])
-    );
+    // Converte strings vazias para null e strings numéricas para float
+    const cleanData: any = {
+        aquarium_id: formData.aquarium_id,
+        measured_at: new Date(formData.measured_at).toISOString(),
+    };
 
-    await onSubmit(cleanData);
-    setLoading(false);
-    onClose();
+    const numericFields = ['temperature', 'ph', 'ammonia', 'nitrite', 'nitrate', 'alkalinity', 'calcium', 'magnesium', 'phosphate', 'salinity'];
+
+    numericFields.forEach(field => {
+        // @ts-ignore
+        const val = formData[field];
+        if (val !== '' && val !== null && val !== undefined) {
+            cleanData[field] = parseFloat(val);
+        } else {
+            cleanData[field] = null;
+        }
+    });
+
+    try {
+        await onSubmit(cleanData);
+        onClose();
+    } catch (error) {
+        console.error("Error submitting form:", error);
+        alert("Erro ao salvar medição. Verifique os dados.");
+    } finally {
+        setLoading(false);
+    }
   };
 
   return (
@@ -75,7 +101,7 @@ const WaterTestForm: React.FC<WaterTestFormProps> = ({ isOpen, onClose, onSubmit
                             required
                         >
                             <option value="" disabled>Selecione...</option>
-                            {aquariums.map(t => <option key={t.id} value={t.id}>{t.name} ({t.type})</option>)}
+                            {aquariums.map(t => <option key={t.id} value={t.id}>{t.name} ({t.tank_type})</option>)}
                         </select>
                     </div>
                     <div>

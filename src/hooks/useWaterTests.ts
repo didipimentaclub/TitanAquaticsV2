@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { WaterTest } from '../types';
@@ -37,7 +38,12 @@ export function useWaterTests(userId?: string, options?: { aquariumId?: string |
   };
 
   const addTest = async (testData: Partial<WaterTest>) => {
-    if (!userId) return { error: 'User not authenticated' };
+    if (!userId) {
+        console.error('Add Test Failed: No User ID');
+        return { error: 'User not authenticated' };
+    }
+
+    console.log("Saving water test:", testData);
 
     const { data, error } = await supabase
       .from('water_tests')
@@ -45,7 +51,9 @@ export function useWaterTests(userId?: string, options?: { aquariumId?: string |
       .select()
       .single();
 
-    if (!error && data) {
+    if (error) {
+        console.error("Supabase Error adding test:", error);
+    } else if (data) {
       setTests(prev => [data, ...prev]);
       setLatestTest(data);
     }

@@ -24,7 +24,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, onViewChange, mobileOpen
       
       const email = user.email.toLowerCase().trim();
       
-      // Hardcode para o Admin Mestre
+      // Hardcode para o Admin Mestre - GARANTIA DE ACESSO
       if (email === 'kbludobarman@gmail.com') {
         setIsAdmin(true);
         return;
@@ -42,6 +42,9 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, onViewChange, mobileOpen
 
     checkAdmin();
   }, [user]);
+
+  // Se for admin, considera como lojista para liberar menus
+  const effectiveTier = isAdmin ? 'lojista' : userTier;
 
   const handleNav = (view: string) => {
     onViewChange(view);
@@ -90,8 +93,8 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, onViewChange, mobileOpen
         
         <div className="px-4 mt-6 mb-2 text-[10px] text-slate-600 font-bold uppercase tracking-widest">Pessoal</div>
         
-        {/* Clients CRM for Shopkeepers */}
-        {(userTier === 'lojista' || isAdmin) && (
+        {/* Clients CRM for Shopkeepers or Admins */}
+        {(effectiveTier === 'lojista' || isAdmin) && (
            <>
              <NavItem view="dashboard-lojista" icon={Store} label="Dashboard Loja" />
              <NavItem view="clients" icon={Users} label="Gestão de Clientes" />
@@ -99,7 +102,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, onViewChange, mobileOpen
            </>
         )}
 
-        <NavItem view="travel" icon={Plane} label="Modo Viagem" locked={userTier === 'hobby'} />
+        <NavItem view="travel" icon={Plane} label="Modo Viagem" locked={effectiveTier === 'hobby' && !isAdmin} />
         <NavItem view="account" icon={User} label="Minha Conta" />
         <NavItem view="planos" icon={Crown} label="Planos" />
         
@@ -122,7 +125,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, onViewChange, mobileOpen
           </div>
           <div className="flex items-center gap-2 text-[10px] text-slate-400">
              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-             Online • v2.2.0
+             Online • v2.2.2
           </div>
         </div>
 

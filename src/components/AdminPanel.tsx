@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Users, Calendar, Settings, Shield, Plus, Trash2, Edit2, X, Save, MessageCircle, ExternalLink } from 'lucide-react';
 import { supabase } from '../lib/supabaseClient';

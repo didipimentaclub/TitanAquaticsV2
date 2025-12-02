@@ -185,7 +185,6 @@ const Dashboard: React.FC = () => {
             {/* --- VISÃO GERAL --- */}
             {activeView === 'overview' && (
                 <div className="space-y-6 max-w-7xl mx-auto">
-                    {/* ... (Conteúdo Overview mantido igual) ... */}
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-2">
                         <div>
                            <h2 className="text-3xl font-heading font-bold text-white">Visão Geral</h2>
@@ -231,7 +230,20 @@ const Dashboard: React.FC = () => {
                                 </div>
                              )}
                         </div>
-                        <div>
+                        <div className="bg-[#1a1b3b]/60 border border-white/10 rounded-xl p-4 md:p-6 h-fit">
+                             <div className="flex items-center justify-between mb-4">
+                                <h3 className="text-lg md:text-xl font-heading font-bold text-white flex items-center gap-2">
+                                  <Calendar size={20} className="text-[#4fb7b3] flex-shrink-0" />
+                                  <span className="truncate">Manutenção</span>
+                                </h3>
+                                <button
+                                  onClick={() => setIsNewTaskFormOpen(true)}
+                                  className="p-2 bg-[#4fb7b3]/20 rounded-lg text-[#4fb7b3] hover:bg-[#4fb7b3] hover:text-black transition-colors flex-shrink-0"
+                                  title="Nova tarefa"
+                                >
+                                  <Plus size={18} />
+                                </button>
+                             </div>
                              <MaintenanceTaskList 
                                 tasks={tasks} 
                                 aquariums={myAquariums} 
