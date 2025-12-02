@@ -1,9 +1,12 @@
+
 import React, { useState } from 'react';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import LandingPage from './components/LandingPage';
 import Sidebar from './components/Sidebar';
 import Overview from './views/Overview';
 import Aquariums from './views/Aquariums';
+import Events from './views/Events';
+import Account from './views/Account';
 import TitanCopilot from './components/TitanCopilot';
 import { Menu } from 'lucide-react';
 
@@ -19,11 +22,9 @@ const LoadingScreen = () => (
 );
 
 // Placeholder Views
-const EventsView = () => <div className="p-8 text-white max-w-7xl mx-auto"><h2 className="text-2xl font-bold mb-4">Eventos</h2><p className="text-slate-400">Módulo em desenvolvimento.</p></div>;
-const ToolsView = () => <div className="p-8 text-white max-w-7xl mx-auto"><h2 className="text-2xl font-bold mb-4">Ferramentas</h2><p className="text-slate-400">Módulo em desenvolvimento.</p></div>;
-const AccountView = () => <div className="p-8 text-white max-w-7xl mx-auto"><h2 className="text-2xl font-bold mb-4">Minha Conta</h2><p className="text-slate-400">Módulo em desenvolvimento.</p></div>;
-const AdminView = () => <div className="p-8 text-white max-w-7xl mx-auto"><h2 className="text-2xl font-bold mb-4">Administração</h2><p className="text-slate-400">Módulo em desenvolvimento.</p></div>;
-const TravelView = () => <div className="p-8 text-white max-w-7xl mx-auto"><h2 className="text-2xl font-bold mb-4">Modo Viagem</h2><p className="text-slate-400">Módulo em desenvolvimento.</p></div>;
+const ToolsView = () => <div className="p-8 text-white max-w-7xl mx-auto"><h2 className="text-2xl font-bold mb-4">Ferramentas</h2><p className="text-slate-400">Módulo em desenvolvimento (Disponível em breve no v2.1).</p></div>;
+const AdminView = () => <div className="p-8 text-white max-w-7xl mx-auto"><h2 className="text-2xl font-bold mb-4">Administração</h2><p className="text-slate-400">Painel administrativo restrito.</p></div>;
+const TravelView = () => <div className="p-8 text-white max-w-7xl mx-auto"><h2 className="text-2xl font-bold mb-4">Modo Viagem</h2><p className="text-slate-400">Gerador de guias PDF em desenvolvimento.</p></div>;
 
 const AppContent: React.FC = () => {
   const { user, loading } = useAuth();
@@ -42,9 +43,9 @@ const AppContent: React.FC = () => {
     switch (currentView) {
       case 'overview': return <Overview />;
       case 'aquariums': return <Aquariums />;
-      case 'events': return <EventsView />;
+      case 'events': return <Events />;
       case 'tools': return <ToolsView />;
-      case 'account': return <AccountView />;
+      case 'account': return <Account />;
       case 'admin': return <AdminView />;
       case 'travel': return <TravelView />;
       default: return <Overview />;
