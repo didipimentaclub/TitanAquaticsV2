@@ -1,6 +1,7 @@
-export type SubscriptionTier = 'hobby' | 'pro' | 'master';
+
+export type SubscriptionTier = 'hobby' | 'pro' | 'master' | 'lojista';
 export type TankType = 'Doce' | 'Marinho' | 'Reef' | 'Jumbo' | 'Plantado';
-export type EventType = 'Feira' | 'Encontro' | 'Campeonato' | 'Workshop' | 'Loja' | 'Grupo WhatsApp';
+export type EventType = 'Feira' | 'Encontro' | 'Campeonato' | 'Workshop' | 'Loja' | 'Grupo WhatsApp' | 'Live/Transmissão' | 'Promoção';
 export type MaintenanceTaskType = 'TPA' | 'Limpeza Filtro' | 'Dosagem' | 'Alimentação' | 'Teste Água' | 'Poda Plantas' | 'Limpeza Vidro' | 'Troca Carvão' | 'Outro';
 export type TaskFrequency = 'diaria' | 'semanal' | 'quinzenal' | 'mensal' | 'trimestral' | 'unica';
 
@@ -8,6 +9,18 @@ export interface ChatMessage {
   role: 'user' | 'model';
   text: string;
   isError?: boolean;
+}
+
+export interface ShopClient {
+  id: string;
+  shopkeeper_id: string;
+  name: string;
+  email?: string;
+  phone?: string;
+  aquarium_type?: string;
+  notes?: string;
+  status?: 'active' | 'lead' | 'inactive';
+  created_at?: string;
 }
 
 export interface Aquarium {
@@ -152,18 +165,35 @@ export const PARAMETER_RANGES: Record<TankType, Record<string, ParameterRange>> 
   },
 };
 
-export const SUBSCRIPTION_LIMITS: Record<SubscriptionTier, { maxAquariums: number; features: string[] }> = {
+export const SUBSCRIPTION_LIMITS: Record<SubscriptionTier, { 
+  maxAquariums: number; 
+  features: string[];
+  travelMode: boolean;
+  shopCRM: boolean;
+}> = {
   hobby: {
     maxAquariums: 1,
-    features: ['Dashboard básico', 'Mural de eventos', '1 aquário']
+    features: ['Dashboard Básico', '1 Aquário', 'Histórico 30 dias'],
+    travelMode: false,
+    shopCRM: false
   },
   pro: {
     maxAquariums: 5,
-    features: ['Até 5 aquários', 'Todas as ferramentas', 'Histórico completo', 'Modo Viagem', 'Suporte prioritário']
+    features: ['5 Aquários', 'Modo Viagem', 'Histórico Vitalício', 'Ferramentas Pro'],
+    travelMode: true,
+    shopCRM: false
   },
   master: {
     maxAquariums: 999,
-    features: ['Aquários ilimitados', 'Gestão de clientes', 'Relatórios PDF', 'Multi-usuário', 'API access', 'White-label']
+    features: ['Aquários Ilimitados', 'IA Avançada', 'Prioridade Suporte', 'Badge Mestre'],
+    travelMode: true,
+    shopCRM: false
+  },
+  lojista: {
+    maxAquariums: 100,
+    features: ['Gestão de Clientes', 'Dashboard Lojista', '100 Aquários', 'Modo Viagem'],
+    travelMode: true,
+    shopCRM: true
   }
 };
 

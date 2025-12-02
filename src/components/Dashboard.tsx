@@ -1,3 +1,4 @@
+
 // @ts-nocheck
 import React, { useState, useEffect } from 'react';
 import {
@@ -41,7 +42,8 @@ import {
   Zap,
   Box,
   Thermometer,
-  AlertTriangle
+  AlertTriangle,
+  Lock
 } from 'lucide-react';
 
 import { motion, AnimatePresence } from 'framer-motion';
@@ -50,9 +52,9 @@ import { jsPDF } from 'jspdf';
 
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../lib/supabaseClient';
-import { Aquarium, AquariumEvent, UserProfile, TankType } from '../types';
+import { Aquarium, AquariumEvent, UserProfile, TankType, SUBSCRIPTION_LIMITS } from '../types';
 import { getEmbedUrl } from '../utils/videoHelpers';
-import { analyzeParameter, formatDate } from '../utils/helpers';
+import { analyzeParameter, formatDate, calculateHealthScore } from '../utils/helpers';
 import { useWaterTests } from '../hooks/useWaterTests';
 import { useMaintenanceTasks } from '../hooks/useMaintenanceTasks';
 import WaterTestForm from './WaterTestForm';
@@ -62,6 +64,24 @@ import { NewAquariumModal } from './NewAquariumModal';
 import { FerramentasSection } from './Ferramentas';
 import { ModoViagem } from './ModoViagem';
 import { AdminPanel } from './AdminPanel';
+import ShopClients from '../views/ShopClients';
+
+// --- Upgrade Lock Component ---
+const UpgradeLockScreen = ({ feature }: { feature: string }) => (
+  <div className="flex flex-col items-center justify-center h-[70vh] text-center p-6">
+    <div className="w-20 h-20 bg-white/5 rounded-full flex items-center justify-center mb-6 border border-white/10">
+      <Lock size={40} className="text-slate-500" />
+    </div>
+    <h2 className="text-2xl font-bold text-white mb-2">{feature} Bloqueado</h2>
+    <p className="text-slate-400 max-w-md mb-8">
+      Esta funcionalidade é exclusiva para membros <strong>Pro</strong> e <strong>Master</strong>.
+      Faça um upgrade para desbloquear ferramentas avançadas.
+    </p>
+    <button className="px-8 py-3 bg-gradient-to-r from-[#4fb7b3] to-emerald-500 text-black font-bold uppercase tracking-widest rounded-lg hover:shadow-lg hover:shadow-[#4fb7b3]/20 transition-all">
+      Desbloquear Agora
+    </button>
+  </div>
+);
 
 // --- Componente Principal Dashboard ---
 
@@ -72,7 +92,7 @@ const Dashboard: React.FC = () => {
   const [isAdmin, setIsAdmin] = useState(false);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [activeView, setActiveView] = useState<'overview' | 'aquariums' | 'events' | 'tools' | 'account' | 'admin' | 'travel'>('overview');
+  const [activeView, setActiveView] = useState<'overview' | 'aquariums' | 'events' | 'tools' | 'account' | 'admin' | 'travel' | 'clients'>('overview');
   
   // Data States
   const [myAquariums, setMyAquariums] = useState<Aquarium[]>([]);
@@ -148,32 +168,23 @@ const Dashboard: React.FC = () => {
   };
 
   // --- Render Helpers ---
-  const getViewTitle = () => { switch(activeView) { case 'overview': return 'Visão Geral'; case 'aquariums': return 'Meus Aquários'; case 'events': return 'Eventos'; case 'tools': return 'Ferramentas'; case 'account': return 'Minha Conta'; case 'admin': return 'Admin'; case 'travel': return 'Modo Viagem'; default: return 'Dashboard'; } };
+  const getViewTitle = () => { switch(activeView) { case 'overview': return 'Visão Geral'; case 'aquariums': return 'Meus Aquários'; case 'events': return 'Eventos'; case 'tools': return 'Ferramentas'; case 'account': return 'Minha Conta'; case 'admin': return 'Admin'; case 'travel': return 'Modo Viagem'; case 'clients': return 'Clientes'; default: return 'Dashboard'; } };
+
+  // Permission Checks
+  const userTier = userProfile?.subscription_tier || 'hobby';
+  const canAccessTravel = SUBSCRIPTION_LIMITS[userTier]?.travelMode;
+  const canAccessClients = SUBSCRIPTION_LIMITS[userTier]?.shopCRM || isAdmin;
 
   // --- UI ---
   return (
     <div className="min-h-screen bg-[#05051a] text-white font-sans selection:bg-[#4fb7b3] selection:text-black overflow-hidden flex">
-      {/* Sidebar Desktop */}
+      {/* Sidebar Desktop - Passing userTier */}
       <aside className="hidden md:flex w-[280px] flex-col bg-[#05051a] border-r border-white/5 shadow-[0_0_40px_rgba(0,0,0,0.6)] h-screen fixed left-0 top-0 z-20">
-        <div className="p-8 pb-4"><div className="flex items-center gap-3 text-xl font-heading font-bold tracking-tighter text-white"><span className="text-[#4fb7b3]">●</span> TITAN SYSTEM v2.1</div></div>
-        <nav className="flex-1 flex flex-col py-4 overflow-y-auto custom-scrollbar">
-            {['overview', 'aquariums', 'events', 'tools'].map(v => (
-                <button key={v} onClick={() => setActiveView(v as any)} className={`w-full flex items-center gap-3 px-4 py-3 transition-colors text-left border-r-2 ${activeView === v ? 'bg-[#4fb7b3]/10 border-[#4fb7b3] text-white' : 'border-transparent text-gray-400 hover:text-white'}`}>
-                    {v === 'overview' && <LayoutDashboard size={18} className={activeView===v?'text-[#4fb7b3]':''} />}
-                    {v === 'aquariums' && <Fish size={18} className={activeView===v?'text-[#4fb7b3]':''} />}
-                    {v === 'events' && <CalendarDays size={18} className={activeView===v?'text-[#4fb7b3]':''} />}
-                    {v === 'tools' && <Wrench size={18} className={activeView===v?'text-[#4fb7b3]':''} />}
-                    <span className="text-xs font-bold uppercase tracking-widest">{v === 'overview' ? 'Visão Geral' : v === 'aquariums' ? 'Aquários' : v === 'events' ? 'Eventos' : 'Ferramentas'}</span>
-                </button>
-            ))}
-            <button onClick={() => setActiveView('travel')} className={`w-full flex items-center gap-3 px-4 py-3 transition-colors text-left border-r-2 ${activeView === 'travel' ? 'bg-[#4fb7b3]/10 border-[#4fb7b3] text-white' : 'border-transparent text-gray-400 hover:text-white'}`}><Plane size={18} className={activeView==='travel'?'text-[#4fb7b3]':''} /><span className="text-xs font-bold uppercase tracking-widest">Modo Viagem</span></button>
-            <button onClick={() => setActiveView('account')} className={`w-full flex items-center gap-3 px-4 py-3 transition-colors text-left border-r-2 ${activeView === 'account' ? 'bg-[#4fb7b3]/10 border-[#4fb7b3] text-white' : 'border-transparent text-gray-400 hover:text-white'}`}><User size={18} className={activeView==='account'?'text-[#4fb7b3]':''} /><span className="text-xs font-bold uppercase tracking-widest">Conta</span></button>
-            {isAdmin && <button onClick={() => setActiveView('admin')} className={`w-full flex items-center gap-3 px-4 py-3 transition-colors text-left border-r-2 ${activeView === 'admin' ? 'bg-[#4fb7b3]/10 border-[#4fb7b3] text-white' : 'border-transparent text-gray-400 hover:text-white'}`}><Settings size={18} className={activeView==='admin'?'text-[#4fb7b3]':''} /><span className="text-xs font-bold uppercase tracking-widest">Admin</span></button>}
-        </nav>
-        <div className="p-6 border-t border-white/5 space-y-4">
-             <div className="flex items-center gap-2 mb-2 px-2"><div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" /><span className="text-[10px] font-mono text-emerald-300 tracking-wider">SYSTEM ONLINE</span></div>
-             <button onClick={() => setIsLogoutConfirmOpen(true)} className="w-full flex items-center gap-2 text-rose-400 hover:text-rose-300 transition-colors text-xs font-bold uppercase tracking-widest px-2"><LogOut size={16} /><span>Sair</span></button>
-        </div>
+        <Sidebar 
+            currentView={activeView} 
+            onViewChange={setActiveView} 
+            userTier={userTier}
+        />
       </aside>
 
       {/* Main Content */}
@@ -187,6 +198,7 @@ const Dashboard: React.FC = () => {
             {/* --- VISÃO GERAL --- */}
             {activeView === 'overview' && (
                 <div className="space-y-6 max-w-7xl mx-auto">
+                    {/* ... (Previous Overview Content) ... */}
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-2">
                         <div>
                            <h2 className="text-3xl font-heading font-bold text-white">Visão Geral</h2>
@@ -302,9 +314,18 @@ const Dashboard: React.FC = () => {
                 <FerramentasSection />
             )}
 
-            {/* --- MODO VIAGEM --- */}
+            {/* --- MODO VIAGEM (LOCKED FOR HOBBY) --- */}
             {activeView === 'travel' && (
-                <ModoViagem userId={user?.id} aquariums={myAquariums} />
+                canAccessTravel 
+                ? <ModoViagem userId={user?.id} aquariums={myAquariums} />
+                : <UpgradeLockScreen feature="Modo Viagem" />
+            )}
+
+            {/* --- CLIENTES (LOJISTA ONLY) --- */}
+            {activeView === 'clients' && (
+                canAccessClients 
+                ? <ShopClients />
+                : <div className="p-8 text-center text-slate-500">Acesso restrito a Lojistas.</div>
             )}
 
             {/* --- ADMIN --- */}
@@ -317,8 +338,8 @@ const Dashboard: React.FC = () => {
       </main>
 
       {/* --- MODALS --- */}
-      <WaterTestForm isOpen={isWaterTestFormOpen} onClose={() => setIsWaterTestFormOpen(false)} onSubmit={addTest} aquariums={myAquariums} />
-      <NewTaskForm isOpen={isNewTaskFormOpen} onClose={() => setIsNewTaskFormOpen(false)} onSubmit={addTask} aquariums={myAquariums} />
+      <WaterTestForm isOpen={isWaterTestFormOpen} onClose={() => setIsWaterTestFormOpen(false)} onSubmit={async (data) => { await addTest(data); }} aquariums={myAquariums} />
+      <NewTaskForm isOpen={isNewTaskFormOpen} onClose={() => setIsNewTaskFormOpen(false)} onSubmit={async (data) => { await addTask(data); }} aquariums={myAquariums} />
       
       <NewAquariumModal 
         isOpen={isNewAquariumOpen} 
@@ -328,6 +349,22 @@ const Dashboard: React.FC = () => {
         currentAquariumCount={myAquariums.length}
         onSuccess={fetchAquariums}
       />
+      
+      {/* Mobile Sidebar */}
+      <AnimatePresence>
+        {isSidebarOpen && (
+            <div className="fixed inset-0 z-50 md:hidden">
+                <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={() => setIsSidebarOpen(false)} />
+                <motion.div initial={{ x: -300 }} animate={{ x: 0 }} exit={{ x: -300 }} className="absolute left-0 top-0 h-full w-[280px] bg-[#05051a] shadow-2xl">
+                    <Sidebar 
+                        currentView={activeView} 
+                        onViewChange={(v) => { setActiveView(v as any); setIsSidebarOpen(false); }} 
+                        userTier={userTier}
+                    />
+                </motion.div>
+            </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

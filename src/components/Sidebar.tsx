@@ -1,17 +1,20 @@
+
 import React, { useEffect, useState } from 'react';
-import { LayoutDashboard, Fish, CalendarDays, Wrench, Plane, User, Settings, LogOut, Activity } from 'lucide-react';
+import { LayoutDashboard, Fish, CalendarDays, Wrench, Plane, User, Settings, LogOut, Activity, Lock, Users } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../lib/supabaseClient';
+import { SubscriptionTier } from '../types';
 
 interface SidebarProps {
   currentView: string;
   onViewChange: (view: string) => void;
   mobileOpen?: boolean;
   setMobileOpen?: (open: boolean) => void;
+  userTier?: SubscriptionTier;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ currentView, onViewChange, mobileOpen, setMobileOpen }) => {
+const Sidebar: React.FC<SidebarProps> = ({ currentView, onViewChange, mobileOpen, setMobileOpen, userTier = 'hobby' }) => {
   const { signOut, user } = useAuth();
   const [isAdmin, setIsAdmin] = useState(false);
 
@@ -19,7 +22,6 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, onViewChange, mobileOpen
     const checkAdmin = async () => {
       if (!user?.email) return;
       
-      // Hardcoded master admin check for immediate access
       const email = user.email.toLowerCase().trim();
       if (email === 'kbludobarman@gmail.com') {
         setIsAdmin(true);
@@ -43,7 +45,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, onViewChange, mobileOpen
     if (setMobileOpen) setMobileOpen(false);
   };
 
-  const NavItem = ({ view, icon: Icon, label }: { view: string; icon: any; label: string }) => {
+  const NavItem = ({ view, icon: Icon, label, locked }: { view: string; icon: any; label: string, locked?: boolean }) => {
     const isActive = currentView === view;
     return (
       <button
@@ -55,7 +57,8 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, onViewChange, mobileOpen
         }`}
       >
         <Icon size={18} className={`transition-colors ${isActive ? 'text-[#4fb7b3]' : 'group-hover:text-[#4fb7b3]'}`} />
-        <span className="text-xs font-bold uppercase tracking-widest relative z-10">{label}</span>
+        <span className="text-xs font-bold uppercase tracking-widest relative z-10 flex-1">{label}</span>
+        {locked && <Lock size={14} className="text-slate-600" />}
         {isActive && (
           <div className="absolute inset-0 bg-gradient-to-r from-[#4fb7b3]/10 to-transparent pointer-events-none" />
         )}
@@ -83,8 +86,15 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, onViewChange, mobileOpen
         <NavItem view="tools" icon={Wrench} label="Ferramentas" />
         
         <div className="px-4 mt-6 mb-2 text-[10px] text-slate-600 font-bold uppercase tracking-widest">Pessoal</div>
-        <NavItem view="travel" icon={Plane} label="Modo Viagem" />
+        
+        {/* Clients CRM for Shopkeepers */}
+        {(userTier === 'lojista' || isAdmin) && (
+           <NavItem view="clients" icon={Users} label="Gestão de Clientes" />
+        )}
+
+        <NavItem view="travel" icon={Plane} label="Modo Viagem" locked={userTier === 'hobby'} />
         <NavItem view="account" icon={User} label="Minha Conta" />
+        
         {isAdmin && <NavItem view="admin" icon={Settings} label="Admin" />}
       </nav>
 
@@ -98,7 +108,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, onViewChange, mobileOpen
           </div>
           <div className="flex items-center gap-2 text-[10px] text-slate-400">
              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-             Online • v2.0.1
+             Online • v2.1.0
           </div>
         </div>
 

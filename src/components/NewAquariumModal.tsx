@@ -2,13 +2,13 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Fish } from 'lucide-react';
 import { supabase } from '../lib/supabaseClient';
-import { TankType, SUBSCRIPTION_LIMITS } from '../types';
+import { TankType, SUBSCRIPTION_LIMITS, SubscriptionTier } from '../types';
 
 interface NewAquariumModalProps {
   isOpen: boolean;
   onClose: () => void;
   userId: string;
-  userTier: 'hobby' | 'pro' | 'master';
+  userTier: SubscriptionTier;
   currentAquariumCount: number;
   onSuccess: () => void;
 }
