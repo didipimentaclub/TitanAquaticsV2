@@ -94,6 +94,7 @@ export interface AquariumEvent {
   image?: string; 
   link?: string; 
   video_url?: string;
+  whatsapp_link?: string;
 }
 
 export interface ParameterRange {

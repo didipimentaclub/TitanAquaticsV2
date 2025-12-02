@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { 
   User, Mail, Calendar, CreditCard, Shield, Award, 
   Settings, Edit2, Save, X, Bell, Moon, Smartphone, 
-  CheckCircle, LogOut 
+  CheckCircle, LogOut, Zap
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
@@ -26,9 +26,29 @@ const Account: React.FC = () => {
     weeklyReport: true
   });
 
+  const MASTER_EMAIL = 'kbludobarman@gmail.com';
+
   useEffect(() => {
     fetchProfileData();
   }, [user]);
+
+  // Auto-fix para Master Admin
+  useEffect(() => {
+    const fixMasterTier = async () => {
+      if (user?.email === MASTER_EMAIL && profile && profile.subscription_tier !== 'master') {
+        console.log("Detectado Admin Master com plano incorreto. Corrigindo...");
+        const { error } = await supabase
+          .from('profiles')
+          .update({ subscription_tier: 'master' })
+          .eq('id', user.id);
+        
+        if (!error) {
+          setProfile(prev => prev ? { ...prev, subscription_tier: 'master' } : null);
+        }
+      }
+    };
+    fixMasterTier();
+  }, [user, profile]);
 
   const fetchProfileData = async () => {
     if (!user) return;
@@ -278,7 +298,8 @@ const Account: React.FC = () => {
                          'Monitoramento de Parâmetros',
                          profile?.subscription_tier === 'pro' || profile?.subscription_tier === 'master' ? 'Múltiplos Aquários' : '1 Aquário (Upgrade para +)',
                          profile?.subscription_tier === 'pro' || profile?.subscription_tier === 'master' ? 'Modo Viagem' : 'Modo Viagem (Bloqueado)',
-                         'Suporte IA Titan Copilot'
+                         'Suporte IA Titan Copilot',
+                         profile?.subscription_tier === 'master' ? 'Recursos Lojista/Admin' : 'Recursos Lojista (Bloqueado)'
                        ].map((feat, i) => (
                          <div key={i} className="flex items-center gap-3 text-sm text-slate-300">
                             <CheckCircle size={14} className={feat.includes('Bloqueado') ? 'text-slate-600' : 'text-[#4fb7b3]'} />
@@ -291,6 +312,12 @@ const Account: React.FC = () => {
                        <button className="w-full py-3 bg-gradient-to-r from-[#4fb7b3] to-emerald-500 text-black font-bold uppercase tracking-widest text-xs rounded-lg hover:shadow-lg hover:shadow-[#4fb7b3]/20 transition-all">
                          Fazer Upgrade Pro
                        </button>
+                    )}
+                    
+                    {user?.email === MASTER_EMAIL && profile?.subscription_tier === 'master' && (
+                        <div className="mt-4 p-3 bg-white/10 rounded-lg text-xs text-white border border-white/20 flex items-center justify-center gap-2">
+                            <Zap size={14} className="text-yellow-400" /> Conta Mestra Verificada
+                        </div>
                     )}
                  </div>
               </div>

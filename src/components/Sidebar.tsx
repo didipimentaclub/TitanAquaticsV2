@@ -1,8 +1,8 @@
-// @ts-nocheck
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { LayoutDashboard, Fish, CalendarDays, Wrench, Plane, User, Settings, LogOut, Activity } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
+import { supabase } from '../lib/supabaseClient';
 
 interface SidebarProps {
   currentView: string;
@@ -13,6 +13,30 @@ interface SidebarProps {
 
 const Sidebar: React.FC<SidebarProps> = ({ currentView, onViewChange, mobileOpen, setMobileOpen }) => {
   const { signOut, user } = useAuth();
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    const checkAdmin = async () => {
+      if (!user?.email) return;
+      
+      // Hardcoded master admin check for immediate access
+      const email = user.email.toLowerCase().trim();
+      if (email === 'kbludobarman@gmail.com') {
+        setIsAdmin(true);
+        return;
+      }
+
+      const { data } = await supabase
+        .from('admin_users')
+        .select('email')
+        .eq('email', email)
+        .single();
+      
+      setIsAdmin(!!data);
+    };
+
+    checkAdmin();
+  }, [user]);
 
   const handleNav = (view: string) => {
     onViewChange(view);
@@ -61,7 +85,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, onViewChange, mobileOpen
         <div className="px-4 mt-6 mb-2 text-[10px] text-slate-600 font-bold uppercase tracking-widest">Pessoal</div>
         <NavItem view="travel" icon={Plane} label="Modo Viagem" />
         <NavItem view="account" icon={User} label="Minha Conta" />
-        <NavItem view="admin" icon={Settings} label="Admin" />
+        {isAdmin && <NavItem view="admin" icon={Settings} label="Admin" />}
       </nav>
 
       <div className="p-4 border-t border-white/5 bg-[#05051a]/50">
