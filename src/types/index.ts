@@ -1,4 +1,3 @@
-
 export type SubscriptionTier = 'hobby' | 'pro' | 'master';
 export type TankType = 'Doce' | 'Marinho' | 'Reef' | 'Jumbo' | 'Plantado';
 export type EventType = 'Feira' | 'Encontro' | 'Campeonato' | 'Workshop' | 'Loja' | 'Grupo WhatsApp';
@@ -12,22 +11,89 @@ export interface ChatMessage {
 }
 
 export interface Aquarium {
-  id: string; user_id: string; name: string; volume: number; sump_volume?: number;
-  type: TankType; setup_date?: string; fauna?: string; equipment?: string;
-  photo_url?: string; notes?: string; is_active?: boolean; created_at?: string;
+  id: string;
+  user_id: string;
+  name: string;
+  volume_liters: number;
+  sump_volume_liters?: number;
+  tank_type: TankType;
+  setup_date?: string;
+  fauna?: string;
+  equipment?: string;
+  photo_url?: string;
+  notes?: string;
+  created_at?: string;
 }
 
 export interface WaterTest {
-  id: string; aquarium_id: string; user_id: string; measured_at: string;
-  temperature?: number; ph?: number; ammonia?: number; nitrite?: number; nitrate?: number;
-  salinity?: number; alkalinity?: number; calcium?: number; magnesium?: number;
-  phosphate?: number; gh?: number; kh?: number; co2?: number; notes?: string;
+  id: string;
+  aquarium_id: string;
+  user_id: string;
+  measured_at: string;
+  temperature?: number;
+  ph?: number;
+  ammonia?: number;
+  nitrite?: number;
+  nitrate?: number;
+  salinity?: number;
+  alkalinity?: number;
+  calcium?: number;
+  magnesium?: number;
+  phosphate?: number;
+  gh?: number;
+  kh?: number;
+  co2?: number;
+  notes?: string;
 }
 
 export interface MaintenanceTask {
-  id: string; aquarium_id: string; user_id: string; title: string;
-  type: MaintenanceTaskType; description?: string; frequency: TaskFrequency;
-  scheduled_date: string; completed_at?: string; is_completed: boolean;
+  id: string;
+  aquarium_id: string;
+  user_id: string;
+  title: string;
+  type: MaintenanceTaskType;
+  description?: string;
+  frequency: TaskFrequency;
+  scheduled_date: string;
+  completed_at?: string;
+  is_completed: boolean;
+}
+
+export interface TravelGuide {
+  id: string;
+  user_id: string;
+  aquarium_id?: string;
+  title: string;
+  start_date: string;
+  end_date: string;
+  feeding_instructions: string;
+  dosing_instructions?: string;
+  emergency_instructions?: string;
+  general_notes?: string;
+  emergency_contact_name?: string;
+  emergency_contact_phone?: string;
+  created_at?: string;
+}
+
+export interface UserProfile {
+  id: string;
+  email?: string;
+  full_name?: string;
+  subscription_tier?: SubscriptionTier;
+  created_at: string;
+  avatar_url?: string;
+}
+
+export interface AquariumEvent {
+  id: string; 
+  title: string; 
+  date: string; 
+  location: string; 
+  description?: string;
+  type: EventType; 
+  image?: string; 
+  link?: string; 
+  video_url?: string;
 }
 
 export interface ParameterRange {
@@ -80,6 +146,21 @@ export const PARAMETER_RANGES: Record<TankType, Record<string, ParameterRange>> 
   },
 };
 
+export const SUBSCRIPTION_LIMITS: Record<SubscriptionTier, { maxAquariums: number; features: string[] }> = {
+  hobby: {
+    maxAquariums: 1,
+    features: ['Dashboard básico', 'Mural de eventos', '1 aquário']
+  },
+  pro: {
+    maxAquariums: 5,
+    features: ['Até 5 aquários', 'Todas as ferramentas', 'Histórico completo', 'Modo Viagem', 'Suporte prioritário']
+  },
+  master: {
+    maxAquariums: 999,
+    features: ['Aquários ilimitados', 'Gestão de clientes', 'Relatórios PDF', 'Multi-usuário', 'API access', 'White-label']
+  }
+};
+
 export interface Badge {
   id: string; name: string; description: string; icon: string;
   category: 'maintenance' | 'testing' | 'community' | 'achievement' | 'special' | 'streak';
@@ -92,16 +173,3 @@ export const AVAILABLE_BADGES: Badge[] = [
   { id: 'first_test', name: 'Cientista Iniciante', description: 'Registrou seu primeiro teste de água', icon: '🧪', category: 'testing', points: 15, criteria: { type: 'count', target: 1, metric: 'water_tests' } },
   { id: 'maintenance_pro', name: 'Manutenção em Dia', description: 'Completou 20 tarefas', icon: '🔧', category: 'maintenance', points: 75, criteria: { type: 'count', target: 20, metric: 'completed_tasks' } },
 ];
-
-export interface AquariumEvent {
-  id: string; title: string; date: string; location: string; description?: string;
-  type: EventType; image?: string; link?: string; video_url?: string;
-}
-
-export interface UserProfile {
-  id: string;
-  email?: string;
-  full_name?: string;
-  subscription_tier?: SubscriptionTier;
-  created_at: string;
-}
