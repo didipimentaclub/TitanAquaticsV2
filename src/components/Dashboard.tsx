@@ -1,50 +1,9 @@
 
 import React, { useState, useEffect } from 'react';
 import {
-  LayoutDashboard,
-  Droplets,
-  Wrench,
-  Plane,
-  User,
-  LogOut,
-  Activity,
-  Calendar,
-  Settings,
-  X,
-  Save,
-  Download,
-  ShieldCheck,
-  Menu,
-  Pencil,
-  Loader2,
-  Plus,
-  Trash2,
-  Fish,
-  CalendarDays,
-  MapPin,
-  ExternalLink,
-  Calculator,
-  ArrowRightLeft,
-  Stethoscope,
-  Image as ImageIcon,
-  Youtube,
-  Megaphone,
-  Upload,
-  CheckCircle,
-  Clock,
-  ArrowLeft,
-  Users,
-  TrendingUp,
-  DollarSign,
-  Layers,
-  Wind,
-  Zap,
-  Box,
-  Thermometer,
-  AlertTriangle,
-  Lock,
-  Store,
-  Crown
+  LayoutDashboard, Droplets, Wrench, Plane, User, LogOut, Activity, Calendar,
+  Settings, Plus, Trash2, Fish, CalendarDays, MapPin, ExternalLink,
+  TrendingUp, AlertTriangle, Lock, Store, Crown, Thermometer, Menu, Pencil
 } from 'lucide-react';
 
 import { motion, AnimatePresence } from 'framer-motion';
@@ -90,8 +49,6 @@ const UpgradeLockScreen = ({ feature }: { feature: string }) => (
   </div>
 );
 
-// --- Componente Principal Dashboard ---
-
 const Dashboard: React.FC = () => {
   const { user, signOut } = useAuth();
   
@@ -100,7 +57,7 @@ const Dashboard: React.FC = () => {
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   
-  // Active View State - Updated for Phase 2
+  // Active View State
   const [activeView, setActiveView] = useState<'overview' | 'aquariums' | 'events' | 'tools' | 'account' | 'admin' | 'travel' | 'planos' | 'dashboard-lojista' | 'clients' | 'agenda'>('overview');
   
   // Data States
@@ -115,14 +72,15 @@ const Dashboard: React.FC = () => {
   const [isNewTaskFormOpen, setIsNewTaskFormOpen] = useState(false);
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
   
-  // Editing
   const [aquariumToDelete, setAquariumToDelete] = useState<string | null>(null);
 
   // Custom Hooks
-  const { tests, addTest, latestTest } = useWaterTests(user?.id);
+  const [selectedAquariumId, setSelectedAquariumId] = useState<string | null>(null);
+  const { tests, addTest, latestTest } = useWaterTests(user?.id, { aquariumId: selectedAquariumId });
   const { tasks, addTask, completeTask, deleteTask } = useMaintenanceTasks(user?.id);
 
-  // --- Effects ---
+  // MASTER EMAIL CONSTANT
+  const MASTER_EMAIL = 'kbludobarman@gmail.com';
 
   useEffect(() => {
     const checkAdminAndProfile = async () => {
@@ -132,7 +90,8 @@ const Dashboard: React.FC = () => {
       if (profile) setUserProfile(profile as any);
 
       const email = user.email ? user.email.toLowerCase().trim() : '';
-      if (email === 'kbludobarman@gmail.com') {
+      
+      if (email === MASTER_EMAIL) {
         setIsAdmin(true);
       } else {
         const { data: admin } = await supabase.from('admin_users').select('*').eq('email', email).single();
@@ -149,12 +108,13 @@ const Dashboard: React.FC = () => {
     }
   }, [user, activeView]);
 
-  // --- Fetchers ---
-
   const fetchAquariums = async () => {
     setIsLoadingAquariums(true);
     const { data, error } = await supabase.from('aquariums').select('*').order('created_at', { ascending: false });
-    if (!error) setMyAquariums(data || []);
+    if (!error) {
+      setMyAquariums(data || []);
+      if(data && data.length > 0 && !selectedAquariumId) setSelectedAquariumId(data[0].id);
+    }
     setIsLoadingAquariums(false);
   };
 
@@ -189,19 +149,27 @@ const Dashboard: React.FC = () => {
       } 
   };
 
-  const userTier = (userProfile?.subscription_tier as SubscriptionTier) || 'hobby';
-  const canAccessTravel = SUBSCRIPTION_LIMITS[userTier]?.travelMode;
+  // Lógica de Permissão Crítica: Se for o admin mestre, ele É 'lojista' para fins de acesso, independente do banco.
+  const isMaster = user?.email?.toLowerCase().trim() === MASTER_EMAIL;
+  let userTier = (userProfile?.subscription_tier as SubscriptionTier) || 'hobby';
   
-  // Acesso a Lojista: se for lojista OU se for o admin mestre
+  if (isMaster) {
+    userTier = 'lojista'; // Force tier for Master Admin
+  }
+
+  // Verifica acesso Lojista (Tier Lojista ou Admin)
   const isLojistaUser = userTier === 'lojista' || isAdmin;
+  
+  // Verifica acesso Viagem (Tier Pro/Master/Lojista ou Admin)
+  const canAccessTravel = SUBSCRIPTION_LIMITS[userTier]?.travelMode || isMaster;
 
   return (
     <div className="min-h-screen bg-[#05051a] text-white font-sans selection:bg-[#4fb7b3] selection:text-black overflow-hidden flex">
-      {/* Sidebar Desktop - Passing userTier */}
+      {/* Sidebar Desktop */}
       <aside className="hidden md:flex w-[280px] flex-col bg-[#05051a] border-r border-white/5 shadow-[0_0_40px_rgba(0,0,0,0.6)] h-screen fixed left-0 top-0 z-20">
         <Sidebar 
             currentView={activeView} 
-            onViewChange={setActiveView} 
+            onViewChange={(v) => setActiveView(v as any)}
             userTier={userTier}
         />
       </aside>
@@ -217,6 +185,7 @@ const Dashboard: React.FC = () => {
             {/* --- VISÃO GERAL --- */}
             {activeView === 'overview' && (
                 <div className="space-y-6 max-w-7xl mx-auto">
+                    {/* ... (Conteúdo Overview mantido igual) ... */}
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-2">
                         <div>
                            <h2 className="text-3xl font-heading font-bold text-white">Visão Geral</h2>
@@ -227,7 +196,6 @@ const Dashboard: React.FC = () => {
                         </button>
                     </div>
 
-                    {/* KPI CARDS e Gráficos (Manteve igual ao anterior) */}
                     <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                         {[
                             { label: 'Temperatura', val: latestTest?.temperature, unit: '°C', key: 'temperature', icon: Thermometer },
@@ -300,7 +268,12 @@ const Dashboard: React.FC = () => {
             )}
 
             {/* --- EVENTOS --- */}
-            {activeView === 'events' && <div className="space-y-6 max-w-5xl mx-auto"><div className="bg-gradient-to-r from-[#1a1b3b] to-[#0d0e21] rounded-2xl p-8 border border-white/10 text-center mb-8 relative overflow-hidden"><div className="absolute top-0 right-0 p-4 opacity-10"><CalendarDays size={120} /></div><div className="relative z-10"><CalendarDays size={48} className="mx-auto text-[#4fb7b3] mb-4" /><h2 className="text-3xl font-heading font-bold text-white mb-2">Mural de Eventos</h2><p className="text-slate-400">Fique por dentro de feiras, encontros e grupos exclusivos.</p></div></div>{events.length > 0 ? <div className="space-y-4">{events.map(evt => (<div key={evt.id} className="flex flex-col md:flex-row gap-0 rounded-2xl bg-[#1a1b3b]/40 border border-white/5 hover:border-[#4fb7b3]/30 transition-colors overflow-hidden"><div className="w-full md:w-64 bg-white/5 flex flex-col">{evt.video_url ? <div className="relative w-full pt-[56.25%] bg-black"><iframe src={getEmbedUrl(evt.video_url)!} className="absolute inset-0 w-full h-full" allowFullScreen /></div> : <div className="h-40 w-full bg-black/50 flex items-center justify-center"><Calendar size={24} className="text-slate-600"/></div>}<div className="flex-1 p-4 text-center"><span className="text-xs font-bold text-[#4fb7b3] uppercase tracking-widest">{evt.type}</span><div className="text-2xl font-bold text-white">{evt.date}</div></div></div><div className="flex-1 p-6 flex flex-col justify-center"><h3 className="text-xl font-bold text-white mb-2">{evt.title}</h3><div className="flex items-center gap-2 text-sm text-slate-400 mb-4"><MapPin size={14} /> {evt.location}</div><p className="text-sm text-slate-300 mb-4">{evt.description}</p>{evt.link && <a href={evt.link} target="_blank" className="text-xs font-bold text-[#4fb7b3] uppercase flex items-center gap-1 hover:text-white">Saiba Mais <ExternalLink size={12} /></a>}</div></div>))}</div> : <p className="text-center text-slate-500 py-10">Nenhum evento encontrado.</p>}</div>}
+            {activeView === 'events' && (
+                <div className="space-y-6 max-w-5xl mx-auto">
+                    {/* ... (Eventos UI) ... */}
+                    <div className="bg-gradient-to-r from-[#1a1b3b] to-[#0d0e21] rounded-2xl p-8 border border-white/10 text-center mb-8 relative overflow-hidden"><div className="absolute top-0 right-0 p-4 opacity-10"><CalendarDays size={120} /></div><div className="relative z-10"><CalendarDays size={48} className="mx-auto text-[#4fb7b3] mb-4" /><h2 className="text-3xl font-heading font-bold text-white mb-2">Mural de Eventos</h2><p className="text-slate-400">Fique por dentro de feiras, encontros e grupos exclusivos.</p></div></div>{events.length > 0 ? <div className="space-y-4">{events.map(evt => (<div key={evt.id} className="flex flex-col md:flex-row gap-0 rounded-2xl bg-[#1a1b3b]/40 border border-white/5 hover:border-[#4fb7b3]/30 transition-colors overflow-hidden"><div className="w-full md:w-64 bg-white/5 flex flex-col">{evt.video_url ? <div className="relative w-full pt-[56.25%] bg-black"><iframe src={getEmbedUrl(evt.video_url)!} className="absolute inset-0 w-full h-full" allowFullScreen /></div> : <div className="h-40 w-full bg-black/50 flex items-center justify-center"><Calendar size={24} className="text-slate-600"/></div>}<div className="flex-1 p-4 text-center"><span className="text-xs font-bold text-[#4fb7b3] uppercase tracking-widest">{evt.type}</span><div className="text-2xl font-bold text-white">{new Date(evt.date).toLocaleDateString('pt-BR')}</div></div></div><div className="flex-1 p-6 flex flex-col justify-center"><h3 className="text-xl font-bold text-white mb-2">{evt.title}</h3><div className="flex items-center gap-2 text-sm text-slate-400 mb-4"><MapPin size={14} /> {evt.location}</div><p className="text-sm text-slate-300 mb-4">{evt.description}</p>{evt.link && <a href={evt.link} target="_blank" className="text-xs font-bold text-[#4fb7b3] uppercase flex items-center gap-1 hover:text-white">Saiba Mais <ExternalLink size={12} /></a>}</div></div>))}</div> : <p className="text-center text-slate-500 py-10">Nenhum evento encontrado.</p>}
+                </div>
+            )}
 
             {/* --- FERRAMENTAS --- */}
             {activeView === 'tools' && <FerramentasSection />}
@@ -308,7 +281,7 @@ const Dashboard: React.FC = () => {
             {/* --- MODO VIAGEM --- */}
             {activeView === 'travel' && (
                 canAccessTravel 
-                ? <ModoViagem userId={user?.id} aquariums={myAquariums} />
+                ? <ModoViagem userId={user?.id || ''} aquariums={myAquariums} />
                 : <UpgradeLockScreen feature="Modo Viagem" />
             )}
 
@@ -320,17 +293,17 @@ const Dashboard: React.FC = () => {
                 />
             )}
 
-            {/* --- VIEWS DO LOJISTA --- */}
+            {/* --- VIEWS DO LOJISTA (INTEGRADO CORRETAMENTE) --- */}
             {activeView === 'dashboard-lojista' && isLojistaUser && (
-                <DashboardLojista userId={user?.id} companyName={userProfile?.company_name} />
+                <DashboardLojista userId={user?.id || ''} companyName={userProfile?.company_name} />
             )}
 
             {activeView === 'clients' && isLojistaUser && (
-                <GestaoClientes userId={user?.id} />
+                <GestaoClientes userId={user?.id || ''} />
             )}
 
             {activeView === 'agenda' && isLojistaUser && (
-                <AgendaManutencoes userId={user?.id} />
+                <AgendaManutencoes userId={user?.id || ''} />
             )}
 
             {/* --- ADMIN --- */}
@@ -339,7 +312,7 @@ const Dashboard: React.FC = () => {
             )}
 
             {/* --- MINHA CONTA --- */}
-            {activeView === 'account' && <div className="max-w-4xl mx-auto"><h2 className="text-2xl font-heading font-bold text-white mb-6">Minha Conta</h2><div className="bg-[#1a1b3b]/60 border border-white/10 rounded-2xl p-8"><p className="text-slate-400 text-sm uppercase font-bold mb-2">Email</p><p className="text-xl text-white font-mono">{user?.email}</p></div></div>}
+            {activeView === 'account' && <div className="max-w-4xl mx-auto"><h2 className="text-2xl font-heading font-bold text-white mb-6">Minha Conta</h2><div className="bg-[#1a1b3b]/60 border border-white/10 rounded-2xl p-8"><p className="text-slate-400 text-sm uppercase font-bold mb-2">Email</p><p className="text-xl text-white font-mono">{user?.email}</p><p className="mt-4 text-slate-400 text-sm">Plano: <span className="text-[#4fb7b3] font-bold uppercase">{userTier}</span></p></div></div>}
         </div>
       </main>
 
@@ -360,7 +333,7 @@ const Dashboard: React.FC = () => {
       <NewAquariumModal 
         isOpen={isNewAquariumOpen} 
         onClose={() => setIsNewAquariumOpen(false)} 
-        userId={user?.id}
+        userId={user?.id || ''}
         userTier={userTier}
         currentAquariumCount={myAquariums.length}
         onSuccess={fetchAquariums}
@@ -374,7 +347,7 @@ const Dashboard: React.FC = () => {
                 <motion.div initial={{ x: -300 }} animate={{ x: 0 }} exit={{ x: -300 }} className="absolute left-0 top-0 h-full w-[280px] bg-[#05051a] shadow-2xl">
                     <Sidebar 
                         currentView={activeView} 
-                        onViewChange={(v) => { setActiveView(v as any); setIsSidebarOpen(false); }} 
+                        onViewChange={(v) => setActiveView(v as any)}
                         userTier={userTier}
                     />
                 </motion.div>

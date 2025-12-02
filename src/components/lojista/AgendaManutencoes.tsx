@@ -29,7 +29,12 @@ const AgendaManutencoes: React.FC<AgendaManutencoesProps> = ({ userId }) => {
 
   const saveVisit = async (e: React.FormEvent) => {
     e.preventDefault();
-    await supabase.from('maintenance_visits').insert([{ ...form, store_user_id: userId, duration_minutes: 60 }]);
+    await supabase.from('maintenance_visits').insert([{ 
+      ...form, 
+      store_user_id: userId, 
+      duration_minutes: 60,
+      cost: parseFloat(form.cost) || 0
+    }]);
     fetchVisits(); setIsModalOpen(false);
   };
 

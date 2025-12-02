@@ -42,7 +42,12 @@ const GestaoClientes: React.FC<GestaoClientesProps> = ({ userId }) => {
   const saveAquarium = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedClient) return;
-    const payload = { ...aquariumForm, client_id: selectedClient.id, store_user_id: userId };
+    const payload = { 
+      ...aquariumForm, 
+      client_id: selectedClient.id, 
+      store_user_id: userId,
+      volume_liters: parseFloat(aquariumForm.volume_liters.toString())
+    };
     await supabase.from('client_aquariums').insert([payload]);
     fetchClientAquariums(selectedClient.id); setIsAquariumModalOpen(false);
   };

@@ -185,6 +185,7 @@ export interface StoreClient {
   phone?: string;
   address?: string;
   notes?: string;
+  aquarium_type?: string;
   created_at: string;
   updated_at?: string;
   // Campos calculados (joins)
