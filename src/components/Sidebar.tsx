@@ -61,16 +61,20 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, onViewChange, mobileOpen
     const isActive = currentView === view;
     return (
       <button
-        onClick={() => handleNav(view)}
+        onClick={() => {
+            // Se estiver bloqueado (locked), não navega, ou navega para 'planos' se preferir
+            if (!locked) handleNav(view);
+            else handleNav('planos'); // Redireciona para planos ao clicar em item bloqueado
+        }}
         className={`w-full flex items-center gap-3 px-4 py-3 transition-all text-left border-l-2 mb-1 group relative overflow-hidden ${
           isActive 
             ? 'border-[#4fb7b3] text-white bg-white/5' 
             : 'border-transparent text-slate-400 hover:text-white hover:bg-white/5'
-        }`}
+        } ${locked ? 'opacity-60 cursor-pointer' : ''}`}
       >
         <Icon size={18} className={`transition-colors ${isActive ? 'text-[#4fb7b3]' : 'group-hover:text-[#4fb7b3]'}`} />
         <span className="text-xs font-bold uppercase tracking-widest relative z-10 flex-1">{label}</span>
-        {locked && <Lock size={14} className="text-slate-600 relative z-10" />}
+        {locked && <Lock size={14} className="text-amber-400 relative z-10" />}
         {isActive && (
           <div className="absolute inset-0 bg-gradient-to-r from-[#4fb7b3]/10 to-transparent pointer-events-none" />
         )}
@@ -85,7 +89,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, onViewChange, mobileOpen
             <span className="text-[#4fb7b3] text-2xl">●</span>
             <div>
                 <h1 className="text-xl font-heading font-bold tracking-tighter text-white leading-none">TITAN</h1>
-                <p className="text-[10px] text-slate-500 uppercase tracking-[0.2em] font-bold">Aquatics 2.2.3</p>
+                <p className="text-[10px] text-slate-500 uppercase tracking-[0.2em] font-bold">Aquatics 2.2.6</p>
             </div>
         </div>
       </div>
@@ -138,7 +142,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, onViewChange, mobileOpen
           </div>
           <div className="flex items-center gap-2 text-[10px] text-slate-400">
              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-             Online • v2.2.3
+             Online • v2.2.6
           </div>
         </div>
 

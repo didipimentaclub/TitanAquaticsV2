@@ -1,16 +1,41 @@
+
 import React, { useState, useEffect } from 'react';
-import { Plane, Calendar, Phone, FileText, Plus, Trash2 } from 'lucide-react';
+import { Plane, Calendar, Phone, FileText, Plus, Trash2, Lock } from 'lucide-react';
 import { supabase } from '../lib/supabaseClient';
-import { Aquarium, TravelGuide } from '../types';
+import { Aquarium, TravelGuide, SubscriptionTier } from '../types';
 // @ts-ignore
 import { jsPDF } from 'jspdf';
 
 interface ModoViagemProps {
   userId: string;
   aquariums?: Aquarium[];
+  userTier?: SubscriptionTier;
 }
 
-export const ModoViagem: React.FC<ModoViagemProps> = ({ userId, aquariums: propAquariums }) => {
+export const ModoViagem: React.FC<ModoViagemProps> = ({ userId, aquariums: propAquariums, userTier = 'hobby' }) => {
+  // BLOQUEIO INTERNO - Se for Hobby (e não admin/master, controlado via prop), mostra tela de bloqueio
+  // Nota: A prop userTier passada pelo Dashboard já considera a lógica de admin
+  if (userTier === 'hobby') {
+    return (
+      <div className="flex flex-col items-center justify-center h-full min-h-[60vh] text-center p-6 bg-[#1a1b3b]/20 border border-white/5 rounded-2xl">
+        <div className="w-20 h-20 bg-white/5 rounded-full flex items-center justify-center mb-6 border border-white/10 relative">
+          <Lock size={40} className="text-amber-400" />
+          <div className="absolute inset-0 bg-amber-400/20 rounded-full animate-ping opacity-20"></div>
+        </div>
+        <h2 className="text-2xl font-bold text-white mb-2">Modo Viagem Premium</h2>
+        <p className="text-slate-400 max-w-md mb-8 leading-relaxed">
+          Gere guias automáticos em PDF para cuidadores. Disponível a partir do plano <strong>Pro</strong>.
+        </p>
+        <button 
+          onClick={() => window.location.href = '#planos'} // Ou usar um callback
+          className="px-8 py-3 bg-gradient-to-r from-[#4fb7b3] to-emerald-500 text-black font-bold uppercase tracking-widest rounded-lg hover:shadow-lg hover:shadow-[#4fb7b3]/20 transition-all hover:scale-105"
+        >
+          Fazer Upgrade
+        </button>
+      </div>
+    );
+  }
+
   const [guides, setGuides] = useState<TravelGuide[]>([]);
   const [aquariums, setAquariums] = useState<Aquarium[]>(propAquariums || []);
   const [isCreating, setIsCreating] = useState(false);

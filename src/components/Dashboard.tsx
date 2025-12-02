@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import {
   LayoutDashboard, Droplets, Wrench, Plane, User, LogOut, Activity, Calendar,
   Settings, Plus, Trash2, Fish, CalendarDays, MapPin, ExternalLink,
-  TrendingUp, AlertTriangle, Lock, Store, Crown, Thermometer, Menu, Pencil
+  TrendingUp, AlertTriangle, Lock, Store, Crown, Thermometer, Menu, Pencil, Clock
 } from 'lucide-react';
 
 import { motion, AnimatePresence } from 'framer-motion';
@@ -36,19 +36,19 @@ import AgendaManutencoes from './lojista/AgendaManutencoes';
 const UpgradeLockScreen = ({ feature, onUpgrade }: { feature: string, onUpgrade: () => void }) => (
   <div className="flex flex-col items-center justify-center h-full min-h-[60vh] text-center p-6 bg-[#1a1b3b]/20 border border-white/5 rounded-2xl">
     <div className="w-20 h-20 bg-white/5 rounded-full flex items-center justify-center mb-6 border border-white/10 relative">
-      <Lock size={40} className="text-slate-500" />
-      <div className="absolute inset-0 bg-[#4fb7b3]/20 rounded-full animate-ping opacity-20"></div>
+      <Lock size={40} className="text-amber-400" />
+      <div className="absolute inset-0 bg-amber-400/20 rounded-full animate-ping opacity-20"></div>
     </div>
     <h2 className="text-2xl font-bold text-white mb-2">{feature} Bloqueado</h2>
     <p className="text-slate-400 max-w-md mb-8 leading-relaxed">
       Esta funcionalidade é exclusiva para membros <strong>Pro</strong>, <strong>Master</strong> ou <strong>Lojista</strong>.
-      Faça um upgrade para desbloquear ferramentas avançadas e ilimitadas.
+      Faça um upgrade para desbloquear ferramentas avançadas.
     </p>
     <button 
       onClick={onUpgrade}
       className="px-8 py-3 bg-gradient-to-r from-[#4fb7b3] to-emerald-500 text-black font-bold uppercase tracking-widest rounded-lg hover:shadow-lg hover:shadow-[#4fb7b3]/20 transition-all hover:scale-105"
     >
-      Desbloquear Agora
+      Ver Planos
     </button>
   </div>
 );
@@ -149,7 +149,7 @@ const Dashboard: React.FC = () => {
           case 'planos': return 'Planos';
           case 'dashboard-lojista': return 'Dashboard Loja';
           case 'clients': return 'Gestão de Clientes';
-          case 'agenda': return 'Agenda';
+          case 'agenda': return 'Agenda Visitas';
           default: return 'Dashboard'; 
       } 
   };
@@ -158,15 +158,15 @@ const Dashboard: React.FC = () => {
   const isMaster = user?.email?.toLowerCase().trim() === MASTER_EMAIL;
   
   // Tier efetivo: Se for Master/Admin, assume 'lojista' para desbloquear tudo na UI
-  // Caso contrário, usa o tier do banco
   let userTier = (userProfile?.subscription_tier as SubscriptionTier) || 'hobby';
   if (isMaster || isAdmin) {
     userTier = 'lojista';
   }
 
-  // Permissões Específicas
-  const isLojistaUser = userTier === 'lojista' || isMaster || isAdmin;
-  const canAccessTravel = (userTier !== 'hobby') || isMaster || isAdmin;
+  const isLojistaUser = userTier === 'lojista';
+  
+  // canAccessTravel: Hobby NÃO pode, a menos que seja Admin/Master
+  const canAccessTravel = userTier !== 'hobby';
 
   return (
     <div className="min-h-screen bg-[#05051a] text-white font-sans selection:bg-[#4fb7b3] selection:text-black overflow-hidden flex">
@@ -189,7 +189,7 @@ const Dashboard: React.FC = () => {
         <div className="flex-1 overflow-y-auto p-4 md:p-8 custom-scrollbar">
             {/* --- VISÃO GERAL --- */}
             {activeView === 'overview' && (
-                <div className="space-y-6 max-w-7xl mx-auto">
+                <div className="space-y-6 max-w-[1600px] mx-auto">
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-2">
                         <div>
                            <h2 className="text-3xl font-heading font-bold text-white">Visão Geral</h2>
@@ -200,64 +200,72 @@ const Dashboard: React.FC = () => {
                         </button>
                     </div>
 
-                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                        {[
-                            { label: 'Temperatura', val: latestTest?.temperature, unit: '°C', key: 'temperature', icon: Thermometer },
-                            { label: 'pH', val: latestTest?.ph, unit: '', key: 'ph', icon: Droplets },
-                            { label: 'Amônia', val: latestTest?.ammonia, unit: 'ppm', key: 'ammonia', icon: Activity },
-                            { label: 'Nitrato', val: latestTest?.nitrate, unit: 'ppm', key: 'nitrate', icon: AlertTriangle },
-                        ].map(stat => {
-                            const analysis = analyzeParameter(stat.key, Number(stat.val || 0), myAquariums[0]?.tank_type || 'Doce');
-                            return (
-                                <div key={stat.key} className="bg-[#1a1b3b]/60 border border-white/5 p-5 rounded-2xl relative overflow-hidden">
-                                    <div className="flex justify-between items-start mb-3">
-                                        <div className="text-slate-400"><stat.icon size={18} /></div>
-                                        <span className={`text-[10px] font-bold uppercase tracking-widest px-2 py-1 rounded-full ${analysis.bgColor} ${analysis.color}`}>{analysis.status === 'ideal' ? 'Ideal' : analysis.status === 'acceptable' ? 'Ok' : 'Atenção'}</span>
-                                    </div>
-                                    <div className="text-2xl font-bold text-white">{stat.val ?? '-'} <span className="text-sm font-normal text-slate-500">{stat.unit}</span></div>
-                                    <div className="text-[10px] text-slate-500 uppercase font-bold mt-1">{stat.label}</div>
-                                </div>
-                            );
-                        })}
-                    </div>
-
+                    {/* Layout GRID Responsivo Corrigido */}
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                        <div className="lg:col-span-2">
-                             {myAquariums.length > 0 && tests.length > 0 ? (
+                        
+                        {/* Coluna Principal (Esquerda) */}
+                        <div className="lg:col-span-2 space-y-6">
+                            
+                            {/* KPI Grid */}
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                {[
+                                    { label: 'Temperatura', val: latestTest?.temperature, unit: '°C', key: 'temperature', icon: Thermometer },
+                                    { label: 'pH', val: latestTest?.ph, unit: '', key: 'ph', icon: Droplets },
+                                    { label: 'Amônia', val: latestTest?.ammonia, unit: 'ppm', key: 'ammonia', icon: Activity },
+                                    { label: 'Nitrato', val: latestTest?.nitrate, unit: 'ppm', key: 'nitrate', icon: AlertTriangle },
+                                ].map(stat => {
+                                    const analysis = analyzeParameter(stat.key, Number(stat.val || 0), myAquariums[0]?.tank_type || 'Doce');
+                                    return (
+                                        <div key={stat.key} className="bg-[#1a1b3b]/60 border border-white/5 p-4 md:p-5 rounded-2xl relative overflow-hidden">
+                                            <div className="flex justify-between items-start mb-3">
+                                                <div className="text-slate-400"><stat.icon size={18} /></div>
+                                                <span className={`text-[10px] font-bold uppercase tracking-widest px-2 py-1 rounded-full ${analysis.bgColor} ${analysis.color}`}>{analysis.status === 'ideal' ? 'Ideal' : analysis.status === 'acceptable' ? 'Ok' : 'Atenção'}</span>
+                                            </div>
+                                            <div className="text-xl md:text-2xl font-bold text-white">{stat.val ?? '-'} <span className="text-sm font-normal text-slate-500">{stat.unit}</span></div>
+                                            <div className="text-[10px] text-slate-500 uppercase font-bold mt-1">{stat.label}</div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+
+                            {/* Charts Section */}
+                            {myAquariums.length > 0 && tests.length > 0 ? (
                                 <div className="rounded-2xl border border-white/10 bg-[#1a1b3b]/60 p-6 h-full">
                                     <h3 className="text-lg font-bold text-white mb-6 flex items-center gap-2"><TrendingUp size={20} className="text-[#4fb7b3]"/> Histórico de Parâmetros</h3>
                                     <ParametersDashboard tests={tests} tankType={myAquariums[0]?.tank_type || 'Doce'} />
                                 </div>
-                             ) : (
-                                <div className="rounded-2xl border border-white/10 bg-[#1a1b3b]/60 p-6 h-full flex flex-col items-center justify-center text-center py-20">
+                            ) : (
+                                <div className="rounded-2xl border border-white/10 bg-[#1a1b3b]/60 p-6 flex flex-col items-center justify-center text-center py-20 min-h-[300px]">
                                     <Activity className="text-slate-600 mb-4" size={48} />
                                     <p className="text-slate-400">Registre seu primeiro teste para ver o gráfico.</p>
                                 </div>
-                             )}
+                            )}
                         </div>
                         
-                        {/* SEÇÃO DE MANUTENÇÃO - CORRIGIDA */}
-                        <div className="bg-[#1a1b3b]/60 border border-white/10 rounded-xl p-4 md:p-6 h-fit">
-                             <div className="flex items-center justify-between mb-4">
-                                <h3 className="text-lg md:text-xl font-heading font-bold text-white flex items-center gap-2">
-                                  <Calendar size={20} className="text-[#4fb7b3] flex-shrink-0" />
-                                  <span className="truncate">Manutenção</span>
-                                </h3>
-                                <button
-                                  onClick={() => setIsNewTaskFormOpen(true)}
-                                  className="p-2 bg-[#4fb7b3]/20 rounded-lg text-[#4fb7b3] hover:bg-[#4fb7b3] hover:text-black transition-colors flex-shrink-0"
-                                  title="Nova tarefa"
-                                >
-                                  <Plus size={18} />
-                                </button>
-                             </div>
-                             <MaintenanceTaskList 
-                                tasks={tasks} 
-                                aquariums={myAquariums} 
-                                onComplete={completeTask} 
-                                onDelete={deleteTask}
-                                onAddClick={() => setIsNewTaskFormOpen(true)}
-                             />
+                        {/* Coluna Lateral (Direita) - Manutenção Corrigida */}
+                        <div className="lg:col-span-1 space-y-6">
+                            <div className="bg-[#1a1b3b]/60 border border-white/10 rounded-xl p-4 md:p-6 overflow-hidden h-fit">
+                                 <div className="flex items-center justify-between gap-2 mb-4">
+                                    <h3 className="text-lg md:text-xl font-heading font-bold text-white flex items-center gap-2 min-w-0">
+                                      <Calendar size={20} className="text-[#4fb7b3] flex-shrink-0" />
+                                      <span className="truncate">Manutenção</span>
+                                    </h3>
+                                    <button
+                                      onClick={() => setIsNewTaskFormOpen(true)}
+                                      className="p-2 bg-[#4fb7b3] rounded-lg text-black hover:bg-white transition-colors flex-shrink-0"
+                                      title="Nova tarefa"
+                                    >
+                                      <Plus size={18} />
+                                    </button>
+                                 </div>
+                                 <MaintenanceTaskList 
+                                    tasks={tasks} 
+                                    aquariums={myAquariums} 
+                                    onComplete={completeTask} 
+                                    onDelete={deleteTask}
+                                    onAddClick={() => setIsNewTaskFormOpen(true)}
+                                 />
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -296,10 +304,10 @@ const Dashboard: React.FC = () => {
             {/* --- FERRAMENTAS --- */}
             {activeView === 'tools' && <FerramentasSection />}
 
-            {/* --- MODO VIAGEM --- */}
+            {/* --- MODO VIAGEM (COM BLOQUEIO) --- */}
             {activeView === 'travel' && (
                 canAccessTravel 
-                ? <ModoViagem userId={user?.id || ''} aquariums={myAquariums} />
+                ? <ModoViagem userId={user?.id || ''} aquariums={myAquariums} userTier={userTier} />
                 : <UpgradeLockScreen feature="Modo Viagem" onUpgrade={() => setActiveView('planos')} />
             )}
 
@@ -311,7 +319,7 @@ const Dashboard: React.FC = () => {
                 />
             )}
 
-            {/* --- VIEWS DO LOJISTA (INTEGRADO CORRETAMENTE) --- */}
+            {/* --- VIEWS DO LOJISTA --- */}
             {activeView === 'dashboard-lojista' && isLojistaUser && (
                 <DashboardLojista userId={user?.id || ''} companyName={userProfile?.company_name} />
             )}
