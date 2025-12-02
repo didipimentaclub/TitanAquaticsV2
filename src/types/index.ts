@@ -5,22 +5,146 @@ export type EventType = 'Feira' | 'Encontro' | 'Campeonato' | 'Workshop' | 'Loja
 export type MaintenanceTaskType = 'TPA' | 'Limpeza Filtro' | 'Dosagem' | 'Alimentação' | 'Teste Água' | 'Poda Plantas' | 'Limpeza Vidro' | 'Troca Carvão' | 'Outro';
 export type TaskFrequency = 'diaria' | 'semanal' | 'quinzenal' | 'mensal' | 'trimestral' | 'unica';
 
+// --- Interface de Planos ---
+export interface PlanInfo {
+  id: SubscriptionTier;
+  name: string;
+  price: number;
+  priceYearly: number;
+  description: string;
+  maxAquariums: number;
+  maxClients: number;
+  features: string[];
+  highlighted?: boolean;
+  badge?: string;
+}
+
+export const PLANS: PlanInfo[] = [
+  {
+    id: 'hobby',
+    name: 'Hobby',
+    price: 0,
+    priceYearly: 0,
+    description: 'Perfeito para quem está começando',
+    maxAquariums: 1,
+    maxClients: 0,
+    features: [
+      '1 aquário',
+      'Dashboard básico',
+      'Mural de eventos',
+      'Calculadoras básicas',
+      'Suporte por email'
+    ]
+  },
+  {
+    id: 'pro',
+    name: 'Pro',
+    price: 24.90,
+    priceYearly: 179.00,
+    description: 'Para aquaristas dedicados',
+    maxAquariums: 5,
+    maxClients: 0,
+    highlighted: true,
+    badge: 'Mais Popular',
+    features: [
+      'Até 5 aquários',
+      'Todas as ferramentas',
+      'Histórico completo de testes',
+      'Gráficos de evolução',
+      'Modo Viagem ilimitado',
+      'Lembretes inteligentes',
+      'Suporte prioritário'
+    ]
+  },
+  {
+    id: 'master',
+    name: 'Master',
+    price: 49.90,
+    priceYearly: 349.00,
+    description: 'Para entusiastas avançados',
+    maxAquariums: 999,
+    maxClients: 0,
+    features: [
+      'Aquários ilimitados',
+      'Tudo do Pro +',
+      'IA para diagnóstico',
+      'Integração IoT',
+      'Alertas por WhatsApp',
+      'Backup na nuvem',
+      'Acesso antecipado a novidades',
+      'Suporte VIP'
+    ]
+  },
+  {
+    id: 'lojista',
+    name: 'Lojista',
+    price: 99.90,
+    priceYearly: 749.00,
+    description: 'Para lojas e profissionais',
+    maxAquariums: 999,
+    maxClients: 999,
+    badge: 'B2B',
+    features: [
+      'Tudo do Master +',
+      'Gestão de clientes ilimitada',
+      'Agenda de manutenções',
+      'Relatórios PDF personalizados',
+      'Logo da empresa nos relatórios',
+      'Múltiplos usuários (em breve)',
+      'API de integração (em breve)',
+      'Selo de Loja Verificada'
+    ]
+  }
+];
+
+export const SUBSCRIPTION_LIMITS: Record<SubscriptionTier, { 
+  maxAquariums: number; 
+  features: string[];
+  travelMode: boolean;
+  shopCRM: boolean;
+}> = {
+  hobby: {
+    maxAquariums: 1,
+    features: ['Dashboard Básico', '1 Aquário', 'Histórico 30 dias'],
+    travelMode: false,
+    shopCRM: false
+  },
+  pro: {
+    maxAquariums: 5,
+    features: ['5 Aquários', 'Modo Viagem', 'Histórico Vitalício', 'Ferramentas Pro'],
+    travelMode: true,
+    shopCRM: false
+  },
+  master: {
+    maxAquariums: 999,
+    features: ['Aquários Ilimitados', 'IA Avançada', 'Prioridade Suporte', 'Badge Mestre'],
+    travelMode: true,
+    shopCRM: false
+  },
+  lojista: {
+    maxAquariums: 999,
+    features: ['Gestão de Clientes', 'Dashboard Lojista', 'Aquários Ilimitados', 'Modo Viagem'],
+    travelMode: true,
+    shopCRM: true
+  }
+};
+
+// --- Tipos Gerais ---
+
 export interface ChatMessage {
   role: 'user' | 'model';
   text: string;
   isError?: boolean;
 }
 
-export interface ShopClient {
+export interface UserProfile {
   id: string;
-  shopkeeper_id: string;
-  name: string;
   email?: string;
-  phone?: string;
-  aquarium_type?: string;
-  notes?: string;
-  status?: 'active' | 'lead' | 'inactive';
-  created_at?: string;
+  full_name?: string;
+  subscription_tier?: SubscriptionTier;
+  company_name?: string;
+  created_at: string;
+  avatar_url?: string;
 }
 
 export interface Aquarium {
@@ -37,6 +161,92 @@ export interface Aquarium {
   notes?: string;
   created_at?: string;
 }
+
+export interface AquariumEvent {
+  id: string; 
+  title: string; 
+  date: string; 
+  location: string; 
+  description?: string;
+  type: EventType; 
+  image?: string; 
+  link?: string; 
+  video_url?: string;
+  whatsapp_link?: string;
+}
+
+// --- Tipos Lojista ---
+
+export interface StoreClient {
+  id: string;
+  store_user_id: string;
+  name: string;
+  email?: string;
+  phone?: string;
+  address?: string;
+  notes?: string;
+  created_at: string;
+  updated_at?: string;
+  // Campos calculados (joins)
+  aquariums_count?: number;
+}
+
+export interface ClientAquarium {
+  id: string;
+  client_id: string;
+  store_user_id: string;
+  name: string;
+  volume_liters?: number;
+  tank_type?: TankType | string;
+  location?: string;
+  notes?: string;
+  photo_url?: string;
+  created_at: string;
+}
+
+export interface MaintenanceVisit {
+  id: string;
+  store_user_id: string;
+  client_id: string;
+  aquarium_id?: string;
+  scheduled_date: string;
+  scheduled_time?: string;
+  duration_minutes: number;
+  type: string;
+  status: 'agendada' | 'confirmada' | 'em_andamento' | 'concluida' | 'cancelada';
+  notes?: string;
+  services_performed?: string;
+  cost?: number;
+  is_paid: boolean;
+  completed_at?: string;
+  created_at: string;
+  // Joins
+  client?: StoreClient;
+  aquarium?: ClientAquarium;
+}
+
+export const MAINTENANCE_TYPES = [
+  'Manutenção Geral',
+  'TPA (Troca Parcial)',
+  'Limpeza de Filtro',
+  'Teste de Parâmetros',
+  'Tratamento de Doenças',
+  'Instalação de Equipamento',
+  'Consultoria',
+  'Montagem de Aquário',
+  'Desmontagem',
+  'Emergência'
+];
+
+export const VISIT_STATUS = {
+  agendada: { label: 'Agendada', color: 'bg-blue-500/20 text-blue-300' },
+  confirmada: { label: 'Confirmada', color: 'bg-emerald-500/20 text-emerald-300' },
+  em_andamento: { label: 'Em Andamento', color: 'bg-amber-500/20 text-amber-300' },
+  concluida: { label: 'Concluída', color: 'bg-green-500/20 text-green-300' },
+  cancelada: { label: 'Cancelada', color: 'bg-rose-500/20 text-rose-300' }
+};
+
+// --- Tipos Técnicos ---
 
 export interface WaterTest {
   id: string;
@@ -86,28 +296,6 @@ export interface TravelGuide {
   emergency_contact_name?: string;
   emergency_contact_phone?: string;
   created_at?: string;
-}
-
-export interface UserProfile {
-  id: string;
-  email?: string;
-  full_name?: string;
-  subscription_tier?: SubscriptionTier;
-  created_at: string;
-  avatar_url?: string;
-}
-
-export interface AquariumEvent {
-  id: string; 
-  title: string; 
-  date: string; 
-  location: string; 
-  description?: string;
-  type: EventType; 
-  image?: string; 
-  link?: string; 
-  video_url?: string;
-  whatsapp_link?: string;
 }
 
 export interface ParameterRange {
@@ -163,38 +351,6 @@ export const PARAMETER_RANGES: Record<TankType, Record<string, ParameterRange>> 
     nitrite: { min: 0, max: 1, ideal_min: 0, ideal_max: 0.1, unit: 'ppm' },
     nitrate: { min: 0, max: 100, ideal_min: 0, ideal_max: 50, unit: 'ppm' },
   },
-};
-
-export const SUBSCRIPTION_LIMITS: Record<SubscriptionTier, { 
-  maxAquariums: number; 
-  features: string[];
-  travelMode: boolean;
-  shopCRM: boolean;
-}> = {
-  hobby: {
-    maxAquariums: 1,
-    features: ['Dashboard Básico', '1 Aquário', 'Histórico 30 dias'],
-    travelMode: false,
-    shopCRM: false
-  },
-  pro: {
-    maxAquariums: 5,
-    features: ['5 Aquários', 'Modo Viagem', 'Histórico Vitalício', 'Ferramentas Pro'],
-    travelMode: true,
-    shopCRM: false
-  },
-  master: {
-    maxAquariums: 999,
-    features: ['Aquários Ilimitados', 'IA Avançada', 'Prioridade Suporte', 'Badge Mestre'],
-    travelMode: true,
-    shopCRM: false
-  },
-  lojista: {
-    maxAquariums: 100,
-    features: ['Gestão de Clientes', 'Dashboard Lojista', '100 Aquários', 'Modo Viagem'],
-    travelMode: true,
-    shopCRM: true
-  }
 };
 
 export interface Badge {

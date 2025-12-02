@@ -1,5 +1,6 @@
+
 import React, { useState, useEffect } from 'react';
-import { Users, Calendar, Settings, Shield, Plus, Trash2, Edit2, X, Save, MessageCircle } from 'lucide-react';
+import { Users, Calendar, Settings, Shield, Plus, Trash2, Edit2, X, Save, MessageCircle, ExternalLink } from 'lucide-react';
 import { supabase } from '../lib/supabaseClient';
 
 interface AdminPanelProps {
@@ -62,7 +63,8 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ userEmail }) => {
   const checkAdmin = async () => {
     if (!userEmail) return;
 
-    if (userEmail === 'kbludobarman@gmail.com') {
+    // Acesso direto para o admin mestre
+    if (userEmail.toLowerCase().trim() === 'kbludobarman@gmail.com') {
       setIsAdmin(true);
       fetchEvents();
       fetchUsers();
@@ -233,7 +235,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ userEmail }) => {
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-2 mb-6 border-b border-white/10 pb-4">
+      <div className="flex gap-2 mb-6 border-b border-white/10 pb-4 overflow-x-auto">
         {[
           { id: 'events', label: 'Eventos', icon: Calendar, count: events.length },
           { id: 'users', label: 'Usuários', icon: Users, count: users.length },
@@ -242,7 +244,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ userEmail }) => {
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id as any)}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg font-bold transition-colors ${
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg font-bold transition-colors whitespace-nowrap ${
               activeTab === tab.id ? 'bg-[#4fb7b3] text-black' : 'bg-white/5 text-white hover:bg-white/20'
             }`}
           >
@@ -279,25 +281,29 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ userEmail }) => {
               events.map(event => (
                 <div 
                   key={event.id} 
-                  className="bg-[#1a1b3b]/60 border border-white/10 rounded-lg p-4 flex justify-between items-center hover:border-white/20 transition-colors"
+                  className="bg-[#1a1b3b]/60 border border-white/10 rounded-lg p-4 flex flex-col md:flex-row justify-between items-start md:items-center hover:border-white/20 transition-colors gap-4"
                 >
                   <div className="flex items-center gap-4 flex-1">
                     {event.image && (
-                      <img src={event.image} alt="" className="w-12 h-12 rounded-lg object-cover" />
+                      <img src={event.image} alt="" className="w-16 h-16 rounded-lg object-cover" />
                     )}
                     <div>
                       <h3 className="text-white font-bold flex items-center gap-2">
                         {event.title}
                         {event.type === 'Grupo WhatsApp' && <MessageCircle size={16} className="text-green-400" />}
                       </h3>
-                      <p className="text-sm text-slate-400">
-                        📅 {new Date(event.date + 'T00:00:00').toLocaleDateString('pt-BR')} • 
-                        🏷️ {event.type} • 
-                        📍 {event.location}
+                      <p className="text-sm text-slate-400 mt-1">
+                        <span className="inline-block mr-2">📅 {new Date(event.date + 'T00:00:00').toLocaleDateString('pt-BR')}</span>
+                        <span className="inline-block mr-2 text-[#4fb7b3] font-bold uppercase text-[10px] bg-[#4fb7b3]/10 px-2 rounded">{event.type}</span>
+                        <span className="inline-block">📍 {event.location}</span>
                       </p>
+                      <div className="flex gap-3 mt-2 text-xs">
+                        {event.link && <a href={event.link} target="_blank" className="text-slate-400 hover:text-white flex items-center gap-1"><ExternalLink size={10}/> Link</a>}
+                        {event.whatsapp_link && <a href={event.whatsapp_link} target="_blank" className="text-green-400 hover:text-green-300 flex items-center gap-1"><MessageCircle size={10}/> WhatsApp</a>}
+                      </div>
                     </div>
                   </div>
-                  <div className="flex gap-2">
+                  <div className="flex gap-2 w-full md:w-auto justify-end">
                     {/* BOTÃO EDITAR */}
                     <button 
                       onClick={() => openEditEvent(event)}
@@ -347,7 +353,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ userEmail }) => {
                       <select
                         value={user.subscription_tier || 'hobby'}
                         onChange={e => updateUserTier(user.id, e.target.value)}
-                        className={`px-2 py-1 rounded text-xs font-bold uppercase bg-black/30 border border-white/10 outline-none ${
+                        className={`px-2 py-1 rounded text-xs font-bold uppercase bg-black/30 border border-white/10 outline-none cursor-pointer ${
                           user.subscription_tier === 'master' ? 'text-purple-300' :
                           user.subscription_tier === 'pro' ? 'text-[#4fb7b3]' :
                           'text-slate-400'
@@ -479,21 +485,26 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ userEmail }) => {
               </div>
 
               {/* Link do WhatsApp (mostrar se tipo for Grupo WhatsApp) */}
-              {eventForm.type === 'Grupo WhatsApp' && (
-                <div>
-                  <label className="text-xs text-green-400 uppercase font-bold">📱 Link do Grupo WhatsApp</label>
+              <div className={`p-4 rounded-lg transition-colors border ${eventForm.type === 'Grupo WhatsApp' ? 'bg-green-500/10 border-green-500/30' : 'bg-transparent border-transparent'}`}>
+                  <label className={`text-xs uppercase font-bold flex items-center gap-2 ${eventForm.type === 'Grupo WhatsApp' ? 'text-green-400' : 'text-[#4fb7b3]'}`}>
+                    <MessageCircle size={12} /> Link do Grupo WhatsApp
+                  </label>
                   <input
                     value={eventForm.whatsapp_link}
                     onChange={e => setEventForm({...eventForm, whatsapp_link: e.target.value})}
                     placeholder="https://chat.whatsapp.com/..."
-                    className="w-full bg-black/30 border border-green-500/30 rounded-lg px-4 py-3 text-white focus:border-green-400 focus:outline-none"
+                    className={`w-full bg-black/30 border rounded-lg px-4 py-3 text-white focus:outline-none mt-1 ${
+                        eventForm.type === 'Grupo WhatsApp' 
+                        ? 'border-green-500/30 focus:border-green-400' 
+                        : 'border-white/10 focus:border-[#4fb7b3]'
+                    }`}
                   />
-                </div>
-              )}
+                  {eventForm.type === 'Grupo WhatsApp' && <p className="text-[10px] text-green-300/70 mt-1">Este link criará um botão "Entrar no Grupo" no mural.</p>}
+              </div>
 
               {/* Link externo */}
               <div>
-                <label className="text-xs text-[#4fb7b3] uppercase font-bold">Link externo</label>
+                <label className="text-xs text-[#4fb7b3] uppercase font-bold">Link externo (Site/Insta)</label>
                 <input
                   type="url"
                   value={eventForm.link}
@@ -514,7 +525,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ userEmail }) => {
                   className="w-full bg-black/30 border border-white/10 rounded-lg px-4 py-3 text-white focus:border-[#4fb7b3] focus:outline-none"
                 />
                 {eventForm.image && (
-                  <img src={eventForm.image} alt="Preview" className="mt-2 h-20 rounded-lg object-cover" />
+                  <img src={eventForm.image} alt="Preview" className="mt-2 h-20 rounded-lg object-cover border border-white/10" />
                 )}
               </div>
 

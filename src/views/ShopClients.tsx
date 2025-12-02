@@ -2,16 +2,16 @@
 import React, { useState, useEffect } from 'react';
 import { Users, Plus, Search, Phone, Mail, FileText, Edit2, Trash2, Droplets } from 'lucide-react';
 import { supabase } from '../lib/supabaseClient';
-import { ShopClient } from '../types';
+import { StoreClient } from '../types';
 import { useAuth } from '../context/AuthContext';
 
 const ShopClients: React.FC = () => {
   const { user } = useAuth();
-  const [clients, setClients] = useState<ShopClient[]>([]);
+  const [clients, setClients] = useState<StoreClient[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingClient, setEditingClient] = useState<ShopClient | null>(null);
+  const [editingClient, setEditingClient] = useState<StoreClient | null>(null);
   const [formData, setFormData] = useState({
     name: '', email: '', phone: '', aquarium_type: 'Doce', notes: ''
   });
@@ -24,7 +24,7 @@ const ShopClients: React.FC = () => {
     if(!user) return;
     setLoading(true);
     const { data, error } = await supabase
-      .from('shop_clients')
+      .from('store_clients')
       .select('*')
       .eq('shopkeeper_id', user.id)
       .order('created_at', { ascending: false });
@@ -38,9 +38,9 @@ const ShopClients: React.FC = () => {
     if(!user) return;
 
     if (editingClient) {
-      await supabase.from('shop_clients').update(formData).eq('id', editingClient.id);
+      await supabase.from('store_clients').update(formData).eq('id', editingClient.id);
     } else {
-      await supabase.from('shop_clients').insert([{ ...formData, shopkeeper_id: user.id }]);
+      await supabase.from('store_clients').insert([{ ...formData, shopkeeper_id: user.id }]);
     }
     
     fetchClients();
@@ -51,11 +51,11 @@ const ShopClients: React.FC = () => {
 
   const handleDelete = async (id: string) => {
     if(!confirm("Remover cliente?")) return;
-    await supabase.from('shop_clients').delete().eq('id', id);
+    await supabase.from('store_clients').delete().eq('id', id);
     fetchClients();
   };
 
-  const openEdit = (client: ShopClient) => {
+  const openEdit = (client: StoreClient) => {
     setEditingClient(client);
     setFormData({
       name: client.name,

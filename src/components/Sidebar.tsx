@@ -1,6 +1,6 @@
 
 import React, { useEffect, useState } from 'react';
-import { LayoutDashboard, Fish, CalendarDays, Wrench, Plane, User, Settings, LogOut, Activity, Lock, Users } from 'lucide-react';
+import { LayoutDashboard, Fish, CalendarDays, Wrench, Plane, User, Settings, LogOut, Activity, Lock, Users, Store, Crown, Calendar } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../lib/supabaseClient';
@@ -23,11 +23,14 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, onViewChange, mobileOpen
       if (!user?.email) return;
       
       const email = user.email.toLowerCase().trim();
+      
+      // Hardcode para o Admin Mestre
       if (email === 'kbludobarman@gmail.com') {
         setIsAdmin(true);
         return;
       }
 
+      // Verificação no banco para outros admins
       const { data } = await supabase
         .from('admin_users')
         .select('email')
@@ -89,13 +92,24 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, onViewChange, mobileOpen
         
         {/* Clients CRM for Shopkeepers */}
         {(userTier === 'lojista' || isAdmin) && (
-           <NavItem view="clients" icon={Users} label="Gestão de Clientes" />
+           <>
+             <NavItem view="dashboard-lojista" icon={Store} label="Dashboard Loja" />
+             <NavItem view="clients" icon={Users} label="Gestão de Clientes" />
+             <NavItem view="agenda" icon={Calendar} label="Agenda Visitas" />
+           </>
         )}
 
         <NavItem view="travel" icon={Plane} label="Modo Viagem" locked={userTier === 'hobby'} />
         <NavItem view="account" icon={User} label="Minha Conta" />
+        <NavItem view="planos" icon={Crown} label="Planos" />
         
-        {isAdmin && <NavItem view="admin" icon={Settings} label="Admin" />}
+        {/* Menu Admin - Visível APENAS se isAdmin for true */}
+        {isAdmin && (
+          <div className="mt-4 pt-4 border-t border-white/5">
+            <div className="px-4 mb-2 text-[10px] text-[#4fb7b3] font-bold uppercase tracking-widest">Administração</div>
+            <NavItem view="admin" icon={Settings} label="Painel Master" />
+          </div>
+        )}
       </nav>
 
       <div className="p-4 border-t border-white/5 bg-[#05051a]/50">
@@ -108,7 +122,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, onViewChange, mobileOpen
           </div>
           <div className="flex items-center gap-2 text-[10px] text-slate-400">
              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-             Online • v2.1.0
+             Online • v2.2.0
           </div>
         </div>
 
