@@ -1,6 +1,7 @@
+
 export type SubscriptionTier = 'hobby' | 'pro' | 'master';
 export type TankType = 'Doce' | 'Marinho' | 'Reef' | 'Jumbo' | 'Plantado';
-export type EventType = 'Feira' | 'Encontro' | 'Campeonato' | 'Workshop' | 'Loja';
+export type EventType = 'Feira' | 'Encontro' | 'Campeonato' | 'Workshop' | 'Loja' | 'Grupo WhatsApp';
 export type MaintenanceTaskType = 'TPA' | 'Limpeza Filtro' | 'Dosagem' | 'Alimentação' | 'Teste Água' | 'Poda Plantas' | 'Limpeza Vidro' | 'Troca Carvão' | 'Outro';
 export type TaskFrequency = 'diaria' | 'semanal' | 'quinzenal' | 'mensal' | 'trimestral' | 'unica';
 

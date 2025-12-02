@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import {
   LayoutDashboard,
@@ -331,6 +332,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isMaster, events, onAddEvent, o
                           <option value="Campeonato">Campeonato</option>
                           <option value="Workshop">Workshop</option>
                           <option value="Loja">Loja</option>
+                          <option value="Grupo WhatsApp">Grupo WhatsApp</option>
                         </select>
                      </div>
                    </div>
