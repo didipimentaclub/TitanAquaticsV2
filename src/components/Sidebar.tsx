@@ -43,8 +43,8 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, onViewChange, mobileOpen
     checkAdmin();
   }, [user]);
 
-  // Se for admin, considera como lojista para liberar menus
-  const effectiveTier = isAdmin ? 'lojista' : userTier;
+  // Se for admin, considera como lojista para liberar menus, mas mantém a visualização do plano real
+  const isMasterOrAdmin = isAdmin;
 
   const handleNav = (view: string) => {
     onViewChange(view);
@@ -64,7 +64,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, onViewChange, mobileOpen
       >
         <Icon size={18} className={`transition-colors ${isActive ? 'text-[#4fb7b3]' : 'group-hover:text-[#4fb7b3]'}`} />
         <span className="text-xs font-bold uppercase tracking-widest relative z-10 flex-1">{label}</span>
-        {locked && <Lock size={14} className="text-slate-600" />}
+        {locked && <Lock size={14} className="text-slate-600 relative z-10" />}
         {isActive && (
           <div className="absolute inset-0 bg-gradient-to-r from-[#4fb7b3]/10 to-transparent pointer-events-none" />
         )}
@@ -79,7 +79,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, onViewChange, mobileOpen
             <span className="text-[#4fb7b3] text-2xl">●</span>
             <div>
                 <h1 className="text-xl font-heading font-bold tracking-tighter text-white leading-none">TITAN</h1>
-                <p className="text-[10px] text-slate-500 uppercase tracking-[0.2em] font-bold">Aquatics 2.0</p>
+                <p className="text-[10px] text-slate-500 uppercase tracking-[0.2em] font-bold">Aquatics 2.2.2</p>
             </div>
         </div>
       </div>
@@ -94,7 +94,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, onViewChange, mobileOpen
         <div className="px-4 mt-6 mb-2 text-[10px] text-slate-600 font-bold uppercase tracking-widest">Pessoal</div>
         
         {/* Clients CRM for Shopkeepers or Admins */}
-        {(effectiveTier === 'lojista' || isAdmin) && (
+        {(userTier === 'lojista' || isMasterOrAdmin) && (
            <>
              <NavItem view="dashboard-lojista" icon={Store} label="Dashboard Loja" />
              <NavItem view="clients" icon={Users} label="Gestão de Clientes" />
@@ -102,7 +102,14 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, onViewChange, mobileOpen
            </>
         )}
 
-        <NavItem view="travel" icon={Plane} label="Modo Viagem" locked={effectiveTier === 'hobby' && !isAdmin} />
+        {/* Modo Viagem com Cadeado se for Hobby e não for Admin */}
+        <NavItem 
+          view="travel" 
+          icon={Plane} 
+          label="Modo Viagem" 
+          locked={userTier === 'hobby' && !isMasterOrAdmin} 
+        />
+        
         <NavItem view="account" icon={User} label="Minha Conta" />
         <NavItem view="planos" icon={Crown} label="Planos" />
         

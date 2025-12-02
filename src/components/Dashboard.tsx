@@ -33,17 +33,21 @@ import GestaoClientes from './lojista/GestaoClientes';
 import AgendaManutencoes from './lojista/AgendaManutencoes';
 
 // --- Upgrade Lock Component ---
-const UpgradeLockScreen = ({ feature }: { feature: string }) => (
-  <div className="flex flex-col items-center justify-center h-[70vh] text-center p-6">
-    <div className="w-20 h-20 bg-white/5 rounded-full flex items-center justify-center mb-6 border border-white/10">
+const UpgradeLockScreen = ({ feature, onUpgrade }: { feature: string, onUpgrade: () => void }) => (
+  <div className="flex flex-col items-center justify-center h-full min-h-[60vh] text-center p-6 bg-[#1a1b3b]/20 border border-white/5 rounded-2xl">
+    <div className="w-20 h-20 bg-white/5 rounded-full flex items-center justify-center mb-6 border border-white/10 relative">
       <Lock size={40} className="text-slate-500" />
+      <div className="absolute inset-0 bg-[#4fb7b3]/20 rounded-full animate-ping opacity-20"></div>
     </div>
     <h2 className="text-2xl font-bold text-white mb-2">{feature} Bloqueado</h2>
-    <p className="text-slate-400 max-w-md mb-8">
-      Esta funcionalidade é exclusiva para membros <strong>Pro</strong> e <strong>Master</strong>.
-      Faça um upgrade para desbloquear ferramentas avançadas.
+    <p className="text-slate-400 max-w-md mb-8 leading-relaxed">
+      Esta funcionalidade é exclusiva para membros <strong>Pro</strong>, <strong>Master</strong> ou <strong>Lojista</strong>.
+      Faça um upgrade para desbloquear ferramentas avançadas e ilimitadas.
     </p>
-    <button className="px-8 py-3 bg-gradient-to-r from-[#4fb7b3] to-emerald-500 text-black font-bold uppercase tracking-widest rounded-lg hover:shadow-lg hover:shadow-[#4fb7b3]/20 transition-all">
+    <button 
+      onClick={onUpgrade}
+      className="px-8 py-3 bg-gradient-to-r from-[#4fb7b3] to-emerald-500 text-black font-bold uppercase tracking-widest rounded-lg hover:shadow-lg hover:shadow-[#4fb7b3]/20 transition-all hover:scale-105"
+    >
       Desbloquear Agora
     </button>
   </div>
@@ -91,6 +95,7 @@ const Dashboard: React.FC = () => {
 
       const email = user.email ? user.email.toLowerCase().trim() : '';
       
+      // Force Admin for master email
       if (email === MASTER_EMAIL) {
         setIsAdmin(true);
       } else {
@@ -149,19 +154,21 @@ const Dashboard: React.FC = () => {
       } 
   };
 
-  // Lógica de Permissão Crítica: Se for o admin mestre, ele É 'lojista' para fins de acesso, independente do banco.
+  // Lógica de Permissão
+  // Se for o admin mestre, ele tem acesso irrestrito
   const isMaster = user?.email?.toLowerCase().trim() === MASTER_EMAIL;
   let userTier = (userProfile?.subscription_tier as SubscriptionTier) || 'hobby';
   
-  if (isMaster) {
-    userTier = 'lojista'; // Force tier for Master Admin
+  // Se for Master Admin, forçamos o tier para 'master' ou 'lojista' visualmente para liberar recursos,
+  // mas idealmente o perfil no banco deve ser atualizado (o que já é feito no Account.tsx).
+  if (isMaster && userTier === 'hobby') {
+    // Fallback para permitir navegação mesmo se o banco ainda não atualizou
+    // Mas não mudamos a variável userTier aqui para não mascarar o estado real
   }
 
-  // Verifica acesso Lojista (Tier Lojista ou Admin)
-  const isLojistaUser = userTier === 'lojista' || isAdmin;
-  
-  // Verifica acesso Viagem (Tier Pro/Master/Lojista ou Admin)
-  const canAccessTravel = SUBSCRIPTION_LIMITS[userTier]?.travelMode || isMaster;
+  // Permissões Específicas
+  const isLojistaUser = userTier === 'lojista' || isMaster || isAdmin;
+  const canAccessTravel = SUBSCRIPTION_LIMITS[userTier]?.travelMode || isMaster || isAdmin;
 
   return (
     <div className="min-h-screen bg-[#05051a] text-white font-sans selection:bg-[#4fb7b3] selection:text-black overflow-hidden flex">
@@ -294,7 +301,7 @@ const Dashboard: React.FC = () => {
             {activeView === 'travel' && (
                 canAccessTravel 
                 ? <ModoViagem userId={user?.id || ''} aquariums={myAquariums} />
-                : <UpgradeLockScreen feature="Modo Viagem" />
+                : <UpgradeLockScreen feature="Modo Viagem" onUpgrade={() => setActiveView('planos')} />
             )}
 
             {/* --- PLANOS --- */}
