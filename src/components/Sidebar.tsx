@@ -18,6 +18,9 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, onViewChange, mobileOpen
   const { signOut, user } = useAuth();
   const [isAdmin, setIsAdmin] = useState(false);
 
+  // CONSTANTE DE EMAIL MESTRE
+  const MASTER_EMAIL = 'kbludobarman@gmail.com';
+
   useEffect(() => {
     const checkAdmin = async () => {
       if (!user?.email) return;
@@ -25,7 +28,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, onViewChange, mobileOpen
       const email = user.email.toLowerCase().trim();
       
       // Hardcode para o Admin Mestre - GARANTIA DE ACESSO
-      if (email === 'kbludobarman@gmail.com') {
+      if (email === MASTER_EMAIL) {
         setIsAdmin(true);
         return;
       }
@@ -43,8 +46,11 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, onViewChange, mobileOpen
     checkAdmin();
   }, [user]);
 
-  // Se for admin, considera como lojista para liberar menus, mas mantém a visualização do plano real
-  const isMasterOrAdmin = isAdmin;
+  // Se for admin ou o email mestre, libera menus de lojista
+  const isMasterOrAdmin = isAdmin || user?.email === MASTER_EMAIL;
+  
+  // Força visualização de menus se for admin/master, independente do tier do banco
+  const effectiveTier = isMasterOrAdmin ? 'lojista' : userTier;
 
   const handleNav = (view: string) => {
     onViewChange(view);
@@ -79,7 +85,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, onViewChange, mobileOpen
             <span className="text-[#4fb7b3] text-2xl">●</span>
             <div>
                 <h1 className="text-xl font-heading font-bold tracking-tighter text-white leading-none">TITAN</h1>
-                <p className="text-[10px] text-slate-500 uppercase tracking-[0.2em] font-bold">Aquatics 2.2.2</p>
+                <p className="text-[10px] text-slate-500 uppercase tracking-[0.2em] font-bold">Aquatics 2.2.3</p>
             </div>
         </div>
       </div>
@@ -94,7 +100,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, onViewChange, mobileOpen
         <div className="px-4 mt-6 mb-2 text-[10px] text-slate-600 font-bold uppercase tracking-widest">Pessoal</div>
         
         {/* Clients CRM for Shopkeepers or Admins */}
-        {(userTier === 'lojista' || isMasterOrAdmin) && (
+        {(effectiveTier === 'lojista' || isMasterOrAdmin) && (
            <>
              <NavItem view="dashboard-lojista" icon={Store} label="Dashboard Loja" />
              <NavItem view="clients" icon={Users} label="Gestão de Clientes" />
@@ -107,14 +113,14 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, onViewChange, mobileOpen
           view="travel" 
           icon={Plane} 
           label="Modo Viagem" 
-          locked={userTier === 'hobby' && !isMasterOrAdmin} 
+          locked={effectiveTier === 'hobby' && !isMasterOrAdmin} 
         />
         
         <NavItem view="account" icon={User} label="Minha Conta" />
         <NavItem view="planos" icon={Crown} label="Planos" />
         
         {/* Menu Admin - Visível APENAS se isAdmin for true */}
-        {isAdmin && (
+        {isMasterOrAdmin && (
           <div className="mt-4 pt-4 border-t border-white/5">
             <div className="px-4 mb-2 text-[10px] text-[#4fb7b3] font-bold uppercase tracking-widest">Administração</div>
             <NavItem view="admin" icon={Settings} label="Painel Master" />
@@ -132,7 +138,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, onViewChange, mobileOpen
           </div>
           <div className="flex items-center gap-2 text-[10px] text-slate-400">
              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-             Online • v2.2.2
+             Online • v2.2.3
           </div>
         </div>
 

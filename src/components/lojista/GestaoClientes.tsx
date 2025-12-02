@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Users, Plus, Search, Phone, Mail, MapPin, Edit2, Trash2, X, Save, ChevronRight, Fish } from 'lucide-react';
 import { supabase } from '../../lib/supabaseClient';

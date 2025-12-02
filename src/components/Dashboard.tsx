@@ -154,16 +154,14 @@ const Dashboard: React.FC = () => {
       } 
   };
 
-  // Lógica de Permissão
-  // Se for o admin mestre, ele tem acesso irrestrito
+  // Lógica de Permissão FORÇADA para Master
   const isMaster = user?.email?.toLowerCase().trim() === MASTER_EMAIL;
-  let userTier = (userProfile?.subscription_tier as SubscriptionTier) || 'hobby';
   
-  // Se for Master Admin, forçamos o tier para 'master' ou 'lojista' visualmente para liberar recursos,
-  // mas idealmente o perfil no banco deve ser atualizado (o que já é feito no Account.tsx).
-  if (isMaster && userTier === 'hobby') {
-    // Fallback para permitir navegação mesmo se o banco ainda não atualizou
-    // Mas não mudamos a variável userTier aqui para não mascarar o estado real
+  // Tier efetivo: Se for Master/Admin, assume 'lojista' para desbloquear tudo na UI
+  // Caso contrário, usa o tier do banco
+  let userTier = (userProfile?.subscription_tier as SubscriptionTier) || 'hobby';
+  if (isMaster || isAdmin) {
+    userTier = 'lojista';
   }
 
   // Permissões Específicas
@@ -237,6 +235,8 @@ const Dashboard: React.FC = () => {
                                 </div>
                              )}
                         </div>
+                        
+                        {/* SEÇÃO DE MANUTENÇÃO - CORRIGIDA */}
                         <div className="bg-[#1a1b3b]/60 border border-white/10 rounded-xl p-4 md:p-6 h-fit">
                              <div className="flex items-center justify-between mb-4">
                                 <h3 className="text-lg md:text-xl font-heading font-bold text-white flex items-center gap-2">
@@ -289,7 +289,6 @@ const Dashboard: React.FC = () => {
             {/* --- EVENTOS --- */}
             {activeView === 'events' && (
                 <div className="space-y-6 max-w-5xl mx-auto">
-                    {/* ... (Eventos UI) ... */}
                     <div className="bg-gradient-to-r from-[#1a1b3b] to-[#0d0e21] rounded-2xl p-8 border border-white/10 text-center mb-8 relative overflow-hidden"><div className="absolute top-0 right-0 p-4 opacity-10"><CalendarDays size={120} /></div><div className="relative z-10"><CalendarDays size={48} className="mx-auto text-[#4fb7b3] mb-4" /><h2 className="text-3xl font-heading font-bold text-white mb-2">Mural de Eventos</h2><p className="text-slate-400">Fique por dentro de feiras, encontros e grupos exclusivos.</p></div></div>{events.length > 0 ? <div className="space-y-4">{events.map(evt => (<div key={evt.id} className="flex flex-col md:flex-row gap-0 rounded-2xl bg-[#1a1b3b]/40 border border-white/5 hover:border-[#4fb7b3]/30 transition-colors overflow-hidden"><div className="w-full md:w-64 bg-white/5 flex flex-col">{evt.video_url ? <div className="relative w-full pt-[56.25%] bg-black"><iframe src={getEmbedUrl(evt.video_url)!} className="absolute inset-0 w-full h-full" allowFullScreen /></div> : <div className="h-40 w-full bg-black/50 flex items-center justify-center"><Calendar size={24} className="text-slate-600"/></div>}<div className="flex-1 p-4 text-center"><span className="text-xs font-bold text-[#4fb7b3] uppercase tracking-widest">{evt.type}</span><div className="text-2xl font-bold text-white">{new Date(evt.date).toLocaleDateString('pt-BR')}</div></div></div><div className="flex-1 p-6 flex flex-col justify-center"><h3 className="text-xl font-bold text-white mb-2">{evt.title}</h3><div className="flex items-center gap-2 text-sm text-slate-400 mb-4"><MapPin size={14} /> {evt.location}</div><p className="text-sm text-slate-300 mb-4">{evt.description}</p>{evt.link && <a href={evt.link} target="_blank" className="text-xs font-bold text-[#4fb7b3] uppercase flex items-center gap-1 hover:text-white">Saiba Mais <ExternalLink size={12} /></a>}</div></div>))}</div> : <p className="text-center text-slate-500 py-10">Nenhum evento encontrado.</p>}
                 </div>
             )}
